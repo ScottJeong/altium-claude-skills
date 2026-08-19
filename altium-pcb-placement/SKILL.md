@@ -1,6 +1,6 @@
 ---
 name: altium-pcb-placement
-description: Altium PCB 배치 작업 — 보드 사이즈 산출, 주요 IC 회전 방향 결정, 존 분할, 배치 가안 도면 생성, 승인 후 실제 좌표 투입까지. "PCB 배치", "배치 가안", "부품 배치", "보드 사이즈", "PCB 크기 얼마나", "레이아웃 시작", "회로도 다 됐으니 PCB", "이 IC 어느 방향으로 놓지", "소켓 방향", "존 나누기", "부품 어디에 놓을까", "PCB로 넘어가자" 같은 말이 나오면 쓴다. 회로도가 끝나고 PCB 문서를 열었거나 열려는 상황 전부에 해당한다. 라우팅·자동배선은 이 스킬이 하지 않는다. 회로도 검토는 altium-schematic-review, 라이브러리 제작은 altium-library 스킬이다.
+description: Altium PCB component placement — derive board size, decide rotation for main ICs and connectors, split zones, generate a 1:1 placement plan drawing, then inject real coordinates after approval, and check overlaps. Triggers: "PCB placement", "place the components", "how big should the board be", "board outline", "start the layout", "which way should this IC face", "socket orientation", "schematic is done, now PCB". Does NOT do routing or autorouting. 한국어: PCB 배치 — 보드 사이즈 산출, 주요 IC·커넥터 회전 결정, 존 분할, 배치 가안 도면, 승인 후 좌표 투입, 겹침 검사. "PCB 배치", "배치 가안", "부품 배치", "보드 사이즈", "레이아웃 시작", "이 IC 어느 방향으로 놓지", "소켓 방향", "PCB로 넘어가자" 같은 말이 나오면 쓴다. 라우팅·자동배선은 하지 않는다. 회로도 검토는 altium-schematic-review, 라이브러리 제작은 altium-library 스킬이다.
 ---
 
 # Altium PCB 배치

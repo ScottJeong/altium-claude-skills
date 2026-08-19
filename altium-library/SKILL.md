@@ -1,6 +1,6 @@
 ---
 name: altium-library
-description: Altium 심볼(.SchLib)·풋프린트(.PcbLib) 라이브러리를 코드로 만들고 검증하는 절차. 부품 라이브러리를 새로 만들거나, 기존 것을 고치거나, 데이터시트·2D 도면에서 풋프린트를 뜨거나, 만든 라이브러리가 맞는지 확인할 때 반드시 쓴다. "풋프린트 만들어", "심볼 만들어", "라이브러리 추가", "SchLib", "PcbLib", "footprint", "schematic symbol", "커넥터/IC 라이브러리", "패드 좌표", "핀 배치", "Altium 라이브러리 검증" 같은 말이 나오면 해당된다. 사용자가 "Altium" 을 명시하지 않아도 부품 도면을 주면서 "이거 라이브러리로 만들어줘" 라고 하면 이 스킬이다. 검증만 요청받은 경우(만든 게 맞는지 봐줘)에도 쓴다.
+description: Create and verify Altium schematic symbols (.SchLib) and PCB footprints (.PcbLib) from datasheets and 2D drawings, as code. Use whenever a part library must be made, fixed, measured from a drawing, or checked. Triggers: "make a footprint", "create a symbol", "add this part to the library", "SchLib", "PcbLib", "footprint", "schematic symbol", "pad coordinates", "pin mapping", "verify this library", or being handed a component drawing and asked to turn it into a library — even if Altium is not named. 한국어: Altium 심볼(.SchLib)·풋프린트(.PcbLib) 라이브러리를 코드로 만들고 검증하는 절차. "풋프린트 만들어", "심볼 만들어", "라이브러리 추가", "커넥터/IC 라이브러리", "패드 좌표", "핀 배치", "Altium 라이브러리 검증", 부품 도면을 주면서 "이거 라이브러리로 만들어줘" 라고 하면 이 스킬이다. 검증만 요청받은 경우에도 쓴다.
 ---
 
 # Altium 라이브러리 제작·검증

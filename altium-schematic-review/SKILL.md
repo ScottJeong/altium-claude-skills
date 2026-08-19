@@ -1,6 +1,6 @@
 ---
 name: altium-schematic-review
-description: Altium 회로도(.SchDoc)를 검토해 미결선 핀·풋프린트 누락·넷 오류를 찾고, 각 후보를 데이터시트로 판정하는 절차. "회로도 검토해줘", "회로 봐줘", "ERC", "미결선", "플로팅 핀", "넷 확인", "풋프린트 빠진 거 있나", "라이브러리 없는 부품", "핀 안 붙은 거", "회로도 이상 없나", "설계 리뷰" 같은 말이 나오면 쓴다. 사용자가 회로도 파일이나 프로젝트를 가리키며 "확인해줘"·"검토"·"괜찮아?" 라고 물어도 해당된다. 회로도를 고치는 게 아니라 **읽고 판정**하는 작업 전부에 쓴다. 라이브러리(심볼·풋프린트)를 만드는 일은 altium-library 스킬이다.
+description: Review an Altium schematic (.SchDoc) — find unconnected pins, missing footprint links and net errors, then judge each candidate against the datasheet before calling it a defect. Triggers: "review this schematic", "check my circuit", "ERC", "floating pins", "unconnected", "any missing footprints", "does this schematic look OK", "design review", or pointing at a schematic and asking "is this fine?". This is for reading and judging, not editing. 한국어: 회로도(.SchDoc) 검토 — 미결선 핀·풋프린트 누락·넷 오류를 찾고 각 후보를 데이터시트로 판정한다. "회로도 검토해줘", "회로 봐줘", "ERC", "미결선", "플로팅 핀", "풋프린트 빠진 거 있나", "회로도 이상 없나", "설계 리뷰", 회로도를 가리키며 "괜찮아?" 라고 물어도 해당된다. 고치는 게 아니라 **읽고 판정**하는 작업이다. 라이브러리 제작은 altium-library 스킬이다.
 ---
 
 # Altium 회로도 검토
