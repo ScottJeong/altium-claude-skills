@@ -8,35 +8,11 @@ schematic review, and PCB placement.
 Written while taking one real board (175 components) from schematic review
 through to placement.
 
-| Skill | What it does | What it will not do |
-|---|---|---|
-| `altium-library` | Author and verify symbols (.SchLib) and footprints (.PcbLib) as code, including measuring datasheets and 2D drawings | It will not guess dimensions without a drawing |
-| `altium-schematic-review` | Review a schematic (.SchDoc) — find unconnected pins, missing footprints and net errors, then judge each one against the datasheet | It reads and judges only. It does not edit the schematic |
-| `altium-pcb-placement` | Derive board size, decide rotation for main ICs and connectors, produce a 1:1 placement plan, inject coordinates, check overlaps | It does not route or autoroute |
-
----
-
-## Try it in five minutes
-
-Check that it works **without Altium and without any MCP server** first.
-All 15 scripts parse the files directly, so Altium does not need to be running.
-
-```powershell
-git clone https://github.com/ScottJeong/altium-claude-skills.git C:\tools\altium-claude-skills
-
-py -3.12 -m venv C:\tools\edatools
-C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
-
-# point it at any library folder you have
-C:\tools\edatools\Scripts\python.exe `
-    C:\tools\altium-claude-skills\altium-library\scripts\survey_library.py `
-    "C:\your\library\folder"
-```
-
-If you get a listing, you are set. Go to **Installing the skills** below.
-If not, see [When it does not work](#when-it-does-not-work).
-
----
+| Skill | What it does |
+|---|---|
+| `altium-library` | Author and verify symbols (.SchLib) and footprints (.PcbLib) as code, including measuring datasheets and 2D drawings |
+| `altium-schematic-review` | Review a schematic (.SchDoc) — find unconnected pins, missing footprints and net errors, then judge each one against the datasheet |
+| `altium-pcb-placement` | PCB placement — derive board size, decide rotation for main ICs and connectors, produce a 1:1 placement plan, inject coordinates, check overlaps |
 
 ## What is actually in here
 

@@ -7,35 +7,11 @@ Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 
 실제 보드 한 장(부품 175개)을 회로도 검토부터 배치까지 끌고 가며 썼다.
 
-| 스킬 | 하는 일 | 안 하는 일 |
-|---|---|---|
-| `altium-library` | 심볼(.SchLib)·풋프린트(.PcbLib) 를 코드로 만들고 검증. 데이터시트·2D 도면 실측 포함 | 도면 없이 추측해서 만들지 않는다 |
-| `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 | 읽고 판정만 한다. 회로도를 고치지 않는다 |
-| `altium-pcb-placement` | 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 1:1 배치 가안, 좌표 투입, 겹침 검사 | 라우팅·자동배선을 하지 않는다 |
-
----
-
-## 5분 안에 확인해보기
-
-**Altium 도 MCP 도 없이** 되는지 먼저 본다. 스크립트 15개 전부 파일을 직접 파싱하므로
-Altium 이 안 떠 있어도 된다.
-
-```powershell
-git clone https://github.com/ScottJeong/altium-claude-skills.git C:\tools\altium-claude-skills
-
-py -3.12 -m venv C:\tools\edatools
-C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
-
-# 아무 라이브러리 폴더나 가리켜 본다
-C:\tools\edatools\Scripts\python.exe `
-    C:\tools\altium-claude-skills\altium-library\scripts\survey_library.py `
-    "C:\내\라이브러리\폴더"
-```
-
-라이브러리 목록이 나오면 준비 끝이다. 여기까지 되면 아래 **스킬 설치**로 간다.
-안 되면 [잘 안 될 때](#잘-안-될-때) 를 본다.
-
----
+| 스킬 | 하는 일 |
+|---|---|
+| `altium-library` | 심볼(.SchLib)·풋프린트(.PcbLib) 를 코드로 만들고 검증. 데이터시트·2D 도면 실측 포함 |
+| `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 |
+| `altium-pcb-placement` | PCB 배치 — 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 배치 가안 도면, 좌표 투입, 겹침 검사 |
 
 ## 실제로 뭐가 들어 있나
 
