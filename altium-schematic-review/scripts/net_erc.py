@@ -18,6 +18,15 @@ import re
 from collections import Counter, defaultdict
 
 from altium_monkey import AltiumSchDoc
+import sys
+
+# Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
+# 콘솔 설정과 무관하게 utf-8 로 낸다.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except AttributeError:
+    pass
+
 
 TOL = 5
 ELEC = {0: 'Input', 1: 'IO', 2: 'Output', 3: 'OpenCollector', 4: 'Passive',

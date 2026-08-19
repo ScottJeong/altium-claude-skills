@@ -28,6 +28,14 @@ from __future__ import annotations
 import json
 import sys
 
+# Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
+# 콘솔 설정과 무관하게 utf-8 로 낸다.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except AttributeError:
+    pass
+
+
 # --- 글자 지표 (Times New Roman, Altium 기본 폰트) --------------------------
 # symbol_to_svg() 출력에서 실측한 값이다. 본체 rect 폭(SVG unit)과 알려진 본체 폭(mil)
 # 으로 스케일을 잡으면 나온다. 32핀 QFN 심볼에서 1 unit = 10 mil 로 측정:

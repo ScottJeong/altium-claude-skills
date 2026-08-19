@@ -97,3 +97,7 @@ C:\tools\edatools\Scripts\pip install altium-monkey pymupdf
 - 스킬을 고칠 때는 **왜 고쳤는지 근거를 본문에 남긴다.** 함정은 겪은 사례와 같이 적는다
 - 스크립트를 프로젝트 폴더로 복사해 쓰지 않는다. 사본이 갈라지면 고친 게 반영 안 된 판이 돌아간다
 - 스킬 폴더 안에서 파이썬을 돌리면 `__pycache__`·`.omc` 가 생긴다. `.gitignore` 에 있다
+
+## 라이선스
+
+[MIT](LICENSE)

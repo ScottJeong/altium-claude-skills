@@ -21,6 +21,14 @@ import argparse
 import sys
 from collections import Counter, defaultdict
 
+# Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
+# 콘솔 설정과 무관하게 utf-8 로 낸다.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except AttributeError:
+    pass
+
+
 try:
     import pymupdf
 except ImportError:  # pragma: no cover
