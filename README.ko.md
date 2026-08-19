@@ -14,6 +14,24 @@ Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 | `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 |
 | `altium-pcb-placement` | PCB 배치 — 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 배치 가안 도면, 좌표 투입, 겹침 검사 |
 
+## 실제로 뭐가 들어 있나
+
+스킬마다 `SKILL.md`(절차) + `references/`(함정 상세) + `scripts/` 다.
+어렵게 얻은 것은 대부분 `references/` 에 있다 — **"이렇게 깨지고, 이렇게 알아본다"** 가 약 1,400줄.
+
+| 파일 | 무엇을 막아주나 |
+|---|---|
+| `altium-library/references/altium-monkey-api.md` | 단위 규약(입력 mil, 되읽기 10mil), z-order 때문에 핀 이름이 안 보이는 것, 파라미터가 엉뚱한 좌표로 들어가는 것 |
+| `altium-library/references/tool-traps.md` | `altium-mcp` / `eda-agent` 가 이상하게 구는 지점과, 틀린 결과가 어떻게 생겼는지 |
+| `altium-library/references/drawing-measurement.md` | 벤더 도면은 문자가 벡터 아웃라인이다. 렌더 픽셀 눈대중은 세 번 하면 세 번 틀린다 |
+| `altium-schematic-review/references/pin-verdict.md` | 플로팅 핀이 진짜 결함인지 판정하는 법 |
+| `altium-schematic-review/references/altium-script-traps.md` | `run_altium_script` 가 디버거에 멈춰 모든 MCP 도구를 막는 것 |
+| `altium-schematic-review/references/net-build-notes.md` | 기하 넷리스트가 Altium 컴파일러와 어긋나는 이유 |
+| `altium-pcb-placement/references/rotation-decision.md` | 핀→변 매핑으로 IC 회전 유도, 커넥터 개구부 방향 |
+| `altium-pcb-placement/references/board-sizing.md` | 보드 사이즈 역산, 고정홀 대칭, 모서리 라운드 |
+| `altium-pcb-placement/references/injection.md` | 컴포넌트 원점 ≠ bbox 중심, 오서링 빌더가 직접 수정을 삼키는 것 |
+| `altium-pcb-placement/references/plan-schema.md` | `plan.json` 형식. 동작 예제는 `examples/` 에 |
+
 ## 설치
 
 clone 한 뒤 `~/.claude/skills/` 에 **디렉터리 정션**을 건다.

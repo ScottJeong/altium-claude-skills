@@ -20,6 +20,25 @@ the measured number behind it.
 | `altium-schematic-review` | Review a schematic — find unconnected pins, missing footprints, net errors; judge each against the datasheet |
 | `altium-pcb-placement` | Board size, IC/connector rotation, placement plan drawing, coordinate injection, overlap check |
 
+## What is actually in here
+
+Each skill is a `SKILL.md` (the procedure) plus `references/` (the traps, in detail)
+and `scripts/`. The reference files are where most of the hard-won part lives —
+about 1,400 lines of "this is how it breaks and how you tell".
+
+| File | What it saves you from |
+|---|---|
+| `altium-library/references/altium-monkey-api.md` | Unit conventions (input mil, read-back 10-mil), z-order making pin names invisible, parameters written to the wrong coordinate |
+| `altium-library/references/tool-traps.md` | Where `altium-mcp` / `eda-agent` misbehave, and what a wrong result looks like |
+| `altium-library/references/drawing-measurement.md` | Vendor drawings store text as vector outlines; pixel-eyeballing a render is wrong three times out of three |
+| `altium-schematic-review/references/pin-verdict.md` | Deciding whether a floating pin is actually a defect |
+| `altium-schematic-review/references/altium-script-traps.md` | `run_altium_script` halting in the debugger and blocking every MCP tool |
+| `altium-schematic-review/references/net-build-notes.md` | Why a geometric netlist disagrees with Altium's compiler |
+| `altium-pcb-placement/references/rotation-decision.md` | Deriving IC rotation from pin-to-side mapping; connector opening direction |
+| `altium-pcb-placement/references/board-sizing.md` | Back-calculating board size; symmetric mounting holes; corner radius |
+| `altium-pcb-placement/references/injection.md` | Component origin is not the bbox centre; the authoring builder swallowing direct edits |
+| `altium-pcb-placement/references/plan-schema.md` | The `plan.json` format, with a working example in `examples/` |
+
 ## Install
 
 Clone, then link the skill folders into `~/.claude/skills/` with directory
