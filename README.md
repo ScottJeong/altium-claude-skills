@@ -89,9 +89,37 @@ Most of what was expensive to learn lives here — roughly 1,400 lines of
 
 ## Install
 
-Link the three skill folders into `~/.claude/skills/` as **directory junctions**.
-Unlike symlinks, junctions need no admin rights, and sync clients see them as
-ordinary folders.
+**Windows + PowerShell only** — junctions (`New-Item -ItemType Junction`) and
+Altium itself are Windows things.
+
+You can hand this repo URL to Claude Code and say "install this". Steps 1-3 below
+are what it needs to do.
+
+### 1. Clone
+
+Clone somewhere you **will not move**. The junctions in step 3 bake an absolute
+path, so relocating the folder later means recreating them.
+
+```powershell
+git clone https://github.com/ScottJeong/altium-claude-skills.git C:\tools\altium-claude-skills
+```
+
+### 2. Python 3.12 venv
+
+This is what the scripts run on. **Do this before the junctions** — the skills
+will trigger without it, and then every script fails. Why 3.12, and the MCP
+setup, are under [Requirements](#requirements).
+
+```powershell
+py -3.12 -m venv C:\tools\edatools
+C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
+C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('ok')"
+```
+
+### 3. Link the three skills as junctions
+
+Into `~/.claude/skills/`. Unlike symlinks, junctions need no admin rights, and
+sync clients see them as ordinary folders.
 
 ```powershell
 $repo = "C:\tools\altium-claude-skills"
@@ -100,7 +128,9 @@ foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review'
 }
 ```
 
-Check that they took. `LinkType` should read `Junction`.
+### Verify
+
+`LinkType` should read `Junction`.
 
 ```powershell
 Get-ChildItem "$env:USERPROFILE\.claude\skills" |
@@ -147,12 +177,7 @@ Coordinate injection, screenshots, and live library queries need it running.
 The scripts parse Altium files (`.SchDoc` `.PcbDoc` `.PcbLib` `.SchLib`) directly
 with [`altium_monkey`](https://github.com/wavenumber-eng/altium_monkey).
 That package requires Python `<3.13`, so keep a separate 3.12 venv.
-
-```powershell
-py -3.12 -m venv C:\tools\edatools
-C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
-C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('ok')"
-```
+The commands are in [install step 2](#2-python-312-venv).
 
 The scripts call **that venv's `python.exe` by full path**. The skill bodies write
 it as just `python`, so do not assume the `python` on your PATH is the right one.

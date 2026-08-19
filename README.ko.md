@@ -84,9 +84,36 @@ J1    -Y       9.06      180   0     270   90
 
 ## 설치
 
-clone 한 폴더의 스킬 3개를 `~/.claude/skills/` 에 **디렉터리 정션**으로 건다.
-정션은 심볼릭 링크와 달리 관리자 권한이 필요 없고, 동기화 클라이언트에는 평범한
-폴더로 보인다.
+**Windows + PowerShell 전용이다.** 정션(`New-Item -ItemType Junction`)과
+Altium 이 Windows 것이기 때문이다.
+
+Claude Code 에게 이 repo 주소를 주고 "설치해줘" 라고 해도 된다.
+아래 1~3 을 그대로 시키면 된다.
+
+### 1. clone
+
+**옮기지 않을 자리**에 받는다. 3번의 정션이 절대경로를 굽기 때문에,
+나중에 폴더를 옮기면 정션을 다시 걸어야 한다.
+
+```powershell
+git clone https://github.com/ScottJeong/altium-claude-skills.git C:\tools\altium-claude-skills
+```
+
+### 2. Python 3.12 venv
+
+스크립트가 이걸로 돈다. **정션보다 먼저 만든다** — 스킬이 걸려도 이게 없으면
+스크립트가 전부 실패한다. 왜 3.12 인지와 MCP 설정은 아래 [필요한 것](#필요한-것) 에 있다.
+
+```powershell
+py -3.12 -m venv C:\tools\edatools
+C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
+C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('ok')"
+```
+
+### 3. 스킬 3개를 정션으로 걸기
+
+`~/.claude/skills/` 아래에 건다. 정션은 심볼릭 링크와 달리 관리자 권한이 필요 없고,
+동기화 클라이언트에는 평범한 폴더로 보인다.
 
 ```powershell
 $repo = "C:\tools\altium-claude-skills"
@@ -95,7 +122,9 @@ foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review'
 }
 ```
 
-제대로 걸렸는지 본다. `LinkType` 이 `Junction` 이어야 한다.
+### 확인
+
+`LinkType` 이 `Junction` 이어야 한다.
 
 ```powershell
 Get-ChildItem "$env:USERPROFILE\.claude\skills" |
@@ -139,12 +168,7 @@ Windows. **파일만 읽고 쓰는 단계는 Altium 을 안 켜도 된다.**
 스크립트가 Altium 파일(`.SchDoc` `.PcbDoc` `.PcbLib` `.SchLib`)을
 [`altium_monkey`](https://github.com/wavenumber-eng/altium_monkey) 로 **직접 파싱**한다.
 이 패키지가 Python `<3.13` 을 요구하므로 3.12 로 venv 를 따로 판다.
-
-```powershell
-py -3.12 -m venv C:\tools\edatools
-C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
-C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('ok')"
-```
+명령은 [설치 2단계](#2-python-312-venv) 에 있다.
 
 스크립트는 **그 venv 의 `python.exe` 를 전체 경로로** 부른다. 스킬 본문은 이걸
 `python` 이라고만 쓰니, PATH 의 `python` 이 그것이라고 가정하지 마라.
