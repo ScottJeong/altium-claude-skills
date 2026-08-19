@@ -12,7 +12,7 @@ through to placement.
 |---|---|
 | `altium-library` | Author and verify symbols (.SchLib) and footprints (.PcbLib) as code, including measuring datasheets and 2D drawings |
 | `altium-schematic-review` | Review a schematic (.SchDoc) — find unconnected pins, missing footprints and net errors, then judge each one against the datasheet |
-| `altium-pcb-placement` | PCB placement — derive board size, decide rotation for main ICs and connectors, produce a 1:1 placement plan, inject coordinates, check overlaps |
+| `altium-pcb-placement` | PCB placement — derive board size, decide rotation for main ICs and connectors, produce a 1:1 placement plan, inject coordinates, check overlaps. It does not route |
 
 ## What is actually in here
 
@@ -87,7 +87,7 @@ Most of what was expensive to learn lives here — roughly 1,400 lines of
 
 ---
 
-## Installing the skills
+## Install
 
 Link the three skill folders into `~/.claude/skills/` as **directory junctions**.
 Unlike symlinks, junctions need no admin rights, and sync clients see them as
@@ -100,25 +100,22 @@ foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review'
 }
 ```
 
-### Verify the install
+Check that they took. `LinkType` should read `Junction`.
 
 ```powershell
-# 1. they should report as junctions
 Get-ChildItem "$env:USERPROFILE\.claude\skills" |
     Select-Object Name, LinkType, Target
-
-# 2. the skill body should be readable through the junction
-Get-Content "$env:USERPROFILE\.claude\skills\altium-library\SKILL.md" -TotalCount 3
 ```
 
-3. Open a **new** Claude Code session and say something like "review this
-   schematic". If it triggers, Claude names the skill as it starts.
+Then open a **new** Claude Code session and say something like "review this
+schematic". If it triggers, Claude names the skill as it starts.
+**A skill linked mid-session does not appear in that session.**
 
 **Junctions bake an absolute path.** Move the repo and you must recreate them.
 If you would rather not use junctions, copy the three folders instead — but then
 `git pull` will not reach them.
 
-### Skill interdependency
+## Skill interdependency
 
 `altium-pcb-placement/scripts/connectivity_matrix.py` imports `net_erc.py` from
 `altium-schematic-review` via a sibling-folder relative path.

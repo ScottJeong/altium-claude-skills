@@ -11,7 +11,7 @@ Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 |---|---|
 | `altium-library` | 심볼(.SchLib)·풋프린트(.PcbLib) 를 코드로 만들고 검증. 데이터시트·2D 도면 실측 포함 |
 | `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 |
-| `altium-pcb-placement` | PCB 배치 — 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 배치 가안 도면, 좌표 투입, 겹침 검사 |
+| `altium-pcb-placement` | PCB 배치 — 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 배치 가안 도면, 좌표 투입, 겹침 검사. 라우팅은 하지 않는다 |
 
 ## 실제로 뭐가 들어 있나
 
@@ -82,7 +82,7 @@ J1    -Y       9.06      180   0     270   90
 
 ---
 
-## 스킬 설치
+## 설치
 
 clone 한 폴더의 스킬 3개를 `~/.claude/skills/` 에 **디렉터리 정션**으로 건다.
 정션은 심볼릭 링크와 달리 관리자 권한이 필요 없고, 동기화 클라이언트에는 평범한
@@ -95,24 +95,21 @@ foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review'
 }
 ```
 
-### 제대로 걸렸는지 확인
+제대로 걸렸는지 본다. `LinkType` 이 `Junction` 이어야 한다.
 
 ```powershell
-# 1. 정션으로 잡히는지 (LinkType 이 Junction 이어야 한다)
 Get-ChildItem "$env:USERPROFILE\.claude\skills" |
     Select-Object Name, LinkType, Target
-
-# 2. 스킬 본문이 정션 너머로 읽히는지
-Get-Content "$env:USERPROFILE\.claude\skills\altium-library\SKILL.md" -TotalCount 3
 ```
 
-3. Claude Code 를 **새로 열고** "이 회로도 검토해줘" 처럼 말해본다.
-   스킬이 걸리면 Claude 가 그 이름을 말하며 시작한다.
+그다음 Claude Code 를 **새로 열고** "이 회로도 검토해줘" 처럼 말해본다.
+스킬이 걸리면 Claude 가 그 이름을 말하며 시작한다.
+**세션 도중에 건 스킬은 그 세션에 안 뜬다.**
 
 **정션은 절대경로를 굽는다.** repo 를 옮기면 정션을 다시 만들어야 한다.
 정션이 싫으면 세 폴더를 그냥 복사해도 되지만, `git pull` 이 반영되지 않는다.
 
-### 스킬 사이 의존
+## 스킬 사이 의존
 
 `altium-pcb-placement/scripts/connectivity_matrix.py` 는 `altium-schematic-review` 의
 `net_erc.py` 를 형제 폴더 상대경로로 가져다 쓴다. **둘을 같이 설치해야 한다.**
