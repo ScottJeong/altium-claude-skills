@@ -62,8 +62,14 @@ python
 (`%APPDATA%\Altium\Altium Designer {GUID}\LastWorkspace\*.DsnWrk` 안에 `.LibPkg`
 절대경로가 그대로 있다) → **사용자에게 묻는다** 순으로 찾는다.
 
-`scripts/survey_library.py` 로 심볼/풋프린트 목록과 핀 수를 훑는다. 부품명이 정확히 안 맞을 수
-있으니 **제조사 약칭·핀수로도** 찾아본다 — 등록명에 제조사 접두어가 붙어 있는 경우가 많다.
+```
+python scripts/survey_library.py <라이브러리 폴더 또는 .PcbLib/.SchLib>
+python scripts/survey_library.py <폴더> --find PCN10      # 부분 문자열
+python scripts/survey_library.py <폴더> --pins 96         # 핀 수로
+```
+
+부품명이 정확히 안 맞을 수 있으니 **제조사 약칭·핀수로도** 찾아본다 —
+등록명에 제조사 접두어가 붙어 있는 경우가 많다.
 
 있으면 **그걸 쓰고 없는 쪽만 만든다.** 겹치게 만들면 나중에 어느 게 진짜인지 아무도 모른다.
 

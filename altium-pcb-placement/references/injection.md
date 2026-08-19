@@ -81,6 +81,14 @@ python scripts/plan_to_placements.py plan.json --offsets offsets.json > p2.json
 3. Altium 이 "파일 바뀜, reload?" → Yes
 ```
 
+```
+python scripts/apply_outline.py <PcbDoc> --width 90 --height 100     --corner-r 2 --holes "15,3 87,3 87,97 15,97"
+```
+
+`--holes` 를 생략하면 네 모서리에서 `--hole-margin`(기본 3mm) 안쪽에 자동으로 놓고,
+비대칭이면 경고한다. `--corner-r 0` 이면 직각. 미리 보려면 `-o <다른경로>` 로
+원본을 안 건드리고 결과만 뽑을 수 있다.
+
 1번을 건너뛰면 Altium 이 저장할 때 외곽이 덮인다. 디스크 mtime 과 부품 좌표를
 읽어 저장됐는지 **확인한 뒤** 쓴다.
 
