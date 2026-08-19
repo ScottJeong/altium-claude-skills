@@ -39,7 +39,7 @@ description: Altium PCB component placement — derive board size, decide rotati
 - 기구 제약 — 케이스, 고정 홀, 높이 제한
 - 보드 크기 목표가 있는가
 
-## 1. 제약 수집 (A)
+## 1. 제약 수집
 
 ```
 python scripts/connectivity_matrix.py <SchDoc> --ref <기준부품>
@@ -130,7 +130,7 @@ python scripts/measure_from_lib.py <SchDoc> --libs <라이브러리폴더>
 그 밑에는 테스트포인트를 못 깐다(프로브가 안 들어간다). 실측 예: 몸체 36×36,
 레버 포함 46.2, 높이 31.7 — 이 세 값이 전부 다른 제약이다.
 
-## 2. 회전 결정 (B) — 이 스킬의 핵심
+## 2. 회전 결정 — 이 스킬의 핵심
 
 **QFN/QFP 는 핀번호가 변을 결정하므로 회전이 순수 계산으로 나온다.**
 
@@ -161,7 +161,7 @@ python scripts/connector_facing.py <SchDoc> --libs <라이브러리폴더>
 이건 사용자에게 물어볼 일이 아니라 **계산 결과를 근거와 함께 제시할 일**이다.
 비교표를 그대로 보여준다 — 왜 다른 3개가 아닌지가 같이 보여야 납득된다.
 
-## 3. 보드 사이즈 (B)
+## 3. 보드 사이즈
 
 **축별로 치수를 누적해서 역산한다.** 어림하지 않는다.
 
@@ -176,7 +176,7 @@ Y: (그 축을 지배하는 부품 하나) + 양끝 여유
 **모든 배치에 이유를 대본다.** "왜 여기?" 에 답이 "없다" 인 부품이 하나라도 있으면
 그만큼 보드가 크다. 커넥터 하나를 이유 없이 대각선에 두면 그 축이 30mm 커진다.
 
-## 4. 가안 도면 (C) — 반복하는 단계
+## 4. 가안 도면 — 반복하는 단계
 
 ```
 python scripts/plan_svg.py plan.json -o <출력경로>
@@ -200,7 +200,7 @@ python scripts/plan_svg.py plan.json -o <출력경로>
 - 금지구역이 있는 변은 몸체가 아니라 **금지구역 바깥**에 붙인다
 - 실제 패드 지름을 모르면 그렇게 적는다. 피치가 패드보다 작으면 다시 그려야 한다
 
-## 4-2. 겹침 검사
+## 5. 겹침 검사
 
 배치를 넣은 뒤(또는 넣기 전 시뮬레이션으로) 물리 충돌을 본다.
 
@@ -215,7 +215,7 @@ python scripts/overlap_check.py <PcbDoc> --pads-only --gap 0.3
 **이 검사는 커넥터 개구부 방향을 못 잡는다.** bbox 가 180° 회전으로 안 변하기
 때문이다 — §2 의 `connector_facing.py` 로 따로 대조한다.
 
-## 5. 좌표 투입 (D) — 승인 후 1회
+## 6. 좌표 투입 — 승인 후 1회
 
 **사용자가 "이대로 확정" 이라고 말하기 전에는 하지 않는다.**
 
@@ -273,7 +273,7 @@ python scripts/plan_to_placements.py plan.json > placements.json
 | `references/rotation-decision.md` | §2 회전. 핀→변 매핑 확인법과 실증 예 |
 | `references/board-sizing.md` | §3 사이즈. 축 누적법 |
 | `references/plan-schema.md` | §4 plan.json 스키마 |
-| `references/injection.md` | §5 투입 **전에**. 단위·원점 함정 |
+| `references/injection.md` | §6 투입 **전에**. 단위·원점 함정 |
 
 | 스크립트 | 용도 |
 |---|---|
@@ -283,6 +283,6 @@ python scripts/plan_to_placements.py plan.json > placements.json
 | `scripts/connectivity_matrix.py` | §1 부품쌍 넷 수 · TP 소속 · 핀별 상대 |
 | `scripts/pin_side_map.py` | §2 회전 4안 비교 |
 | `scripts/plan_svg.py` | §4 가안 도면 |
-| `scripts/plan_to_placements.py` | §5 mm/bbox → mils/원점 변환 |
+| `scripts/plan_to_placements.py` | §6 mm/bbox → mils/원점 변환 |
 
 관련: 회로도 검토 **`altium-schematic-review`** · 라이브러리 제작 **`altium-library`**.
