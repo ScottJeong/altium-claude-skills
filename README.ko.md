@@ -5,8 +5,8 @@
 Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 심볼·풋프린트 제작, 회로도 검토, PCB 배치 세 단계를 다룬다.
 
-실제 보드 한 장(부품 175개)을 회로도 검토부터 배치까지 끌고 가며 만들었다.
-겪은 함정을 사례와 함께 본문에 남겨 뒀다.
+실제 보드 한 장(부품 175개)을 회로도 검토부터 배치까지 끌고 가며 썼다.
+그래서 여기 적힌 함정은 실제로 걸리는 것들이고, 전부 **규칙 + 실측 숫자** 형태로 적혀 있다.
 
 | 스킬 | 하는 일 |
 |---|---|
@@ -40,52 +40,73 @@ foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review'
 
 ## 필요한 것
 
-### 1. Altium Designer
+### Altium Designer
 
-Windows. 파일 파싱만 하는 기능은 Altium 없이도 되지만, 배치·스크린샷·라이브러리
-조회는 Altium 이 떠 있어야 한다.
+Windows. 파일만 읽는 단계는 Altium 을 안 켜도 된다. 배치·스크린샷·라이브 조회는 켜야 한다.
 
-### 2. 파이썬 + `altium_monkey`
+### Python 3.12 + `altium_monkey`
 
-스크립트 대부분이 [`altium_monkey`](https://github.com/wavenumber-eng/altium_monkey)
-로 Altium 파일(`.SchDoc` `.PcbDoc` `.PcbLib` `.SchLib`)을 **직접 파싱**한다.
-Altium 을 안 켜도 되는 게 장점이다.
-
-이 패키지가 Python `<3.13` 을 요구하므로 **3.12 가상환경**을 따로 판다.
+스크립트 대부분이 Altium 파일(`.SchDoc` `.PcbDoc` `.PcbLib` `.SchLib`)을
+[`altium_monkey`](https://github.com/wavenumber-eng/altium_monkey) 로 **직접 파싱**한다.
+그래서 Altium 이 안 떠 있어도 된다. 이 패키지가 Python `<3.13` 을 요구한다.
 
 ```powershell
+# 1. Python 3.12 가 없으면 설치하고, 이 용도로 venv 를 판다
 py -3.12 -m venv C:\tools\edatools
-C:\tools\edatools\Scripts\pip install altium-monkey pymupdf
+
+# 2. 패키지 둘
+C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
+
+# 3. 확인
+C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('ok')"
 ```
 
-스킬 본문에서 이 인터프리터를 `python` 이라고 부른다. **그 venv 의 python.exe** 로 돌린다.
+스크립트는 **그 venv 의 `python.exe` 를 전체 경로로** 부른다. 스킬 본문은 이걸 `python`
+이라고만 쓰니, PATH 의 `python` 이 그것이라고 가정하지 마라.
 
-`pymupdf` 는 데이터시트·2D 도면에서 치수를 재는 데 쓴다 (벤더 도면은 문자가
-텍스트가 아니라 벡터 아웃라인이라 렌더해서 읽어야 한다).
+`pymupdf` 는 데이터시트·2D 도면 실측용이다. 벤더 도면은 문자가 벡터 아웃라인이라
+텍스트 추출이 안 되고 렌더해서 읽어야 한다.
 
-### 3. MCP 서버
+### MCP: `altium-mcp`
 
-| MCP | 쓰는 곳 | 없으면 |
-|---|---|---|
-| [`altium-mcp`](https://github.com/coffeenmusic/altium-mcp) | **배치**(`place_components`), 스크린샷, 라이브러리 심볼/풋프린트 조회, 열려 있는 보드 상태 읽기 | `altium-pcb-placement` 의 좌표 투입과 육안 검증이 안 된다. 나머지(파일 파싱·계산·가안 도면)는 동작 |
-| `pcbparts` | 부품 사양·재고(`jlc_search`), 일반 설계 규칙(`get_design_rules`) | 판정 근거를 데이터시트·웹에서 직접 찾으면 된다. 선택 |
+떠 있는 Altium 을 조작한다. **배치**(`place_components`)·스크린샷·라이브 라이브러리
+조회에 필요하다. 없으면 파일만 만지는 것은 전부 그대로 된다 — 파싱·실측·회전 계산·
+가안 도면·겹침 검사.
 
-`WebSearch` / `WebFetch` 는 데이터시트를 못 찾을 때 쓴다 (Claude Code 기본 도구).
+```powershell
+git clone https://github.com/coffeenmusic/altium-mcp.git C:\tools\altium-mcp
 
-**`eda-agent` 를 `altium-mcp` 와 동시에 띄우지 마라.** Altium 안에 자체 폴링 루프를 띄워야 하는데
-**Altium 의 스크립팅 슬롯이 전역으로 하나**라, 그걸 띄우면 `altium-mcp` 브릿지가 죽는다.
+claude mcp add altium-mcp --scope user -- `
+    C:\tools\edatools\Scripts\python.exe C:\tools\altium-mcp\start_server.py
+```
+
+서버가 첫 호출 때 자기 venv 를 부트스트랩하고 Altium 에 스크립트 프로젝트를 설치한다.
+`claude mcp list` 로 등록을 보고, Claude 에게 `get_server_status` 를 시켜 확인한다.
+
+> 그쪽 README 는 Claude **Desktop** 방식(`.dxt` 확장)만 적혀 있다.
+> Claude **Code** 는 위처럼 `claude mcp add` 로 붙인다.
+
+### MCP: `pcbparts` (선택)
+
+부품 사양·재고(`jlc_search`), 일반 설계 규칙(`get_design_rules`). 호스팅이라 설치 없다.
+
+```powershell
+claude mcp add --transport http pcbparts --scope user https://pcbparts.dev/mcp
+```
+
+없으면 데이터시트나 웹(`WebSearch`/`WebFetch`, Claude Code 기본 도구)에서 같은 걸 찾으면 된다.
+
+### `eda-agent` 를 `altium-mcp` 와 같이 띄우지 마라
+
+**Altium 의 스크립팅 슬롯은 전역으로 하나다.** `eda-agent` 는 Altium 안에 자체 폴링
+루프를 띄워야 해서, 그걸 시작하면 `altium-mcp` 브릿지가 죽는다.
+
 `altium-library` 의 3D 모델 절에 `eda-agent` 도구를 쓰는 **선택 단계**가 둘 있다
 (`lib_extract_cse_zip`, `lib_easyeda_import`). 그 단계만 쓰려면 `altium-mcp` 를 내리고
-`eda-agent` 를 띄운 뒤 끝나면 되돌린다. 없어도 수동으로 대체된다.
+`eda-agent` 를 띄운 뒤 되돌린다. 둘 다 수동 대체가 있다.
 
-같은 이유로 `altium-mcp` 의 `run_altium_script` 도 꼭 필요할 때만 쓴다 —
-런타임 에러가 나면 스크립트가 디버거에 멈춰 **모든 MCP 도구가 막히고 사람이
-`Ctrl+F3` 을 눌러야** 풀린다.
-
-### 4. 없어도 되는 것
-
-3D 모델을 받아 붙이는 절이 있는데 여기서만 외부 소스를 쓴다
-(KiCad packages3D, EasyEDA). 인터넷만 되면 별도 설치는 없다.
+같은 이유로 `run_altium_script` 는 꼭 필요할 때만 쓴다 — 런타임 에러가 나면 스크립트가
+Altium 디버거에 멈춰 **모든 MCP 도구가 막히고** 사람이 `Ctrl+F3` 을 눌러야 풀린다.
 
 ## 무엇이 Altium 없이 되나
 
@@ -98,15 +119,14 @@ C:\tools\edatools\Scripts\pip install altium-monkey pymupdf
 **외주 PCB 설계업체에 넘길 배치 가안은 Altium 없이도 만들 수 있다.**
 회로도와 라이브러리(또는 데이터시트)만 있으면 된다.
 
-## 고칠 때
+## 기여
 
-- **규칙으로 쓰고, 근거는 검증된 숫자로 붙인다.** 겪은 사례를 서사로 적지 않는다.
-  `QFN32 몸체 4.00 → 실제 풋프린트 7.05×7.00` 은 정보고,
-  「내가 4×4 로 잡았다가 틀렸다」 는 남의 일지다. 같은 걸 알려주면서 앞쪽만 남긴다
-- **스크립트를 프로젝트 폴더로 복사해 쓰지 않는다.** 사본이 갈라지면
-  고친 게 반영 안 된 판이 계속 돌아간다
-- **특정 칩·보드 이름과 그 설계값을 넣지 않는다.** 범용 스킬이다.
-  판정은 그때그때 데이터시트를 보고 한다
+이슈·PR 환영. 두 가지만 지키면 계속 쓸 만하다.
+
+- **규칙으로 쓰고 실측 숫자로 뒷받침한다.** 사고 경위를 서술하지 않는다.
+  `QFN32 몸체 4.00 → 실제 풋프린트 7.05×7.00` 이 정보다
+- **특정 칩·보드 이름과 한 설계의 값을 넣지 않는다.** 범용 스킬이고,
+  판정은 그때그때 데이터시트로 한다
 
 ## 라이선스
 
