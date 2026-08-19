@@ -163,8 +163,9 @@ W = H = min_square_body(LEFT, RIGHT, TOP, BOTTOM, extra_left=['GND'])
 
 글자 지표는 **실측한다.** `symbol_to_svg()` 출력에서 본체 rect 폭(SVG unit)과
 알려진 본체 폭(mil)으로 스케일을 잡으면 문자 폭이 바로 나온다.
-측정값 (Times New Roman, Altium 기본): **약 56 mil/자**, font-size **90 mil**.
-여유 둬서 `CHAR_W=60` `TEXT_H=90` 이격 40 으로 잡는다.
+측정값 (Times New Roman, Altium 기본): **56.6 mil/자**, font-size **90 mil**.
+여유 둬서 `CHAR_W=60` `TEXT_H=90`, 이름 상자 이격 `CLEAR=40`, 엣지 오프셋 50 으로 잡는다.
+이 값들은 `scripts/fit_symbol_body.py` 상단에 그대로 있다.
 
 어림과 계산의 차이는 크다 — 32핀·최장 이름 18자에서
 2700 정사각(어림) → **2300 정사각(계산)**, 면적 27% 감소.
