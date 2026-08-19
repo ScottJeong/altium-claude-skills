@@ -182,7 +182,8 @@ Y: (그 축을 지배하는 부품 하나) + 양끝 여유
 python scripts/plan_svg.py plan.json -o <출력경로>
 ```
 
-`plan.json` 스키마는 `references/plan-schema.md`.
+`plan.json` 스키마는 `references/plan-schema.md`,
+**동작하는 예제는 `examples/plan.example.json`** — 거기서 시작하는 게 빠르다.
 
 - **반드시 1:1 축척.** 눈대중은 "들어갈 것 같다" 를 만들고 그건 늘 틀린다
 - 금지구역·테스트포인트 뱅크·주요 신호 흐름·NOTE 를 같이 그린다
