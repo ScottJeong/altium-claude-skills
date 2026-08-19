@@ -1,6 +1,10 @@
 # altium-claude-skills
 
-Altium 하드웨어 설계용 Claude Code 스킬. **다른 사람이 받아 쓸 수 있게** 만든다.
+Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
+심볼·풋프린트 제작, 회로도 검토, PCB 배치 세 단계를 다룬다.
+
+실제 보드 한 장(부품 175개)을 회로도 검토부터 배치까지 끌고 가며 만들었다.
+겪은 함정을 사례와 함께 본문에 남겨 뒀다.
 
 | 스킬 | 하는 일 |
 |---|---|
@@ -10,18 +14,22 @@ Altium 하드웨어 설계용 Claude Code 스킬. **다른 사람이 받아 쓸 
 
 ## 설치
 
-이 폴더가 실제 원본이고, `~/.claude/skills/` 에는 **디렉터리 정션**만 건다.
-심볼릭 링크가 아니라 정션이라 관리자 권한이 필요 없고, 클라우드 동기화 쪽에서는
-평범한 폴더로만 보인다.
+clone 한 뒤 `~/.claude/skills/` 에 **디렉터리 정션**을 건다.
+정션은 심볼릭 링크와 달리 관리자 권한이 필요 없다.
 
 ```powershell
-$repo = "C:\path\to\altium-claude-skills"   # clone 한 위치
+git clone https://github.com/letjsk/altium-claude-skills.git `
+    C:\path\to\altium-claude-skills
+
+$repo = "C:\path\to\altium-claude-skills"
 foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review') {
     New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\$s" -Target "$repo\$s"
 }
 ```
 
-새 PC 라면 `$repo` 를 그 PC 의 경로로 바꾼다. 정션은 절대경로를 굽는다.
+**정션은 절대경로를 굽는다.** repo 를 옮기면 정션을 다시 만들어야 한다.
+정션이 싫으면 세 폴더를 `~/.claude/skills/` 로 그냥 복사해도 된다 —
+대신 `git pull` 한 게 자동으로 반영되지 않는다.
 
 ## 스킬 사이 의존
 
@@ -84,19 +92,14 @@ C:\tools\edatools\Scripts\pip install altium-monkey pymupdf
 **외주 PCB 설계업체에 넘길 배치 가안은 Altium 없이도 만들 수 있다.**
 회로도와 라이브러리(또는 데이터시트)만 있으면 된다.
 
-## 배포용이라 넣지 않는 것
+## 고칠 때
 
-- **프로젝트 고유 정보.** 칩·보드 이름, 그 설계값, 사내 부품 번호.
-  실증은 남기되 **주체를 익명화**한다 — 교훈은 그대로 남고 정보는 안 샌다.
-  시판 부품(데이터시트 공개)은 그대로 써도 된다
-- **사내 경로·개인 절대경로.** 남의 PC 에서 전부 깨진다
-- **개인 작업 방식과 내 환경 전제.** → [`claude-skills-personal`](https://github.com/letjsk/claude-skills-personal)
-
-## 규칙
-
-- 스킬을 고칠 때는 **왜 고쳤는지 근거를 본문에 남긴다.** 함정은 겪은 사례와 같이 적는다
-- 스크립트를 프로젝트 폴더로 복사해 쓰지 않는다. 사본이 갈라지면 고친 게 반영 안 된 판이 돌아간다
-- 스킬 폴더 안에서 파이썬을 돌리면 `__pycache__`·`.omc` 가 생긴다. `.gitignore` 에 있다
+- **왜 고쳤는지 근거를 본문에 남긴다.** 함정은 겪은 사례와 같이 적는다.
+  이 스킬들이 쓸모 있는 건 절차보다 함정 쪽이다
+- **스크립트를 프로젝트 폴더로 복사해 쓰지 않는다.** 사본이 갈라지면
+  고친 게 반영 안 된 판이 계속 돌아간다
+- **특정 칩·보드 이름과 그 설계값을 넣지 않는다.** 범용 스킬이다.
+  판정은 그때그때 데이터시트를 보고 한다
 
 ## 라이선스
 
