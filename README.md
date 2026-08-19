@@ -81,9 +81,15 @@ text as vector outlines, so they have to be rendered and read, not extracted.
 `WebSearch` / `WebFetch` (built into Claude Code) are used when a datasheet is not
 available locally.
 
-**Do not run `eda-agent` alongside this.** It needs its own polling loop inside
+**Never run `eda-agent` at the same time as `altium-mcp`.** It needs its own polling loop inside
 Altium, and **Altium has exactly one global scripting slot** — starting it kills
-the `altium-mcp` bridge. For the same reason `run_altium_script` is used sparingly:
+the `altium-mcp` bridge.
+
+Two **optional** steps in `altium-library` (3D models) call `eda-agent` tools
+(`lib_extract_cse_zip`, `lib_easyeda_import`). To use them, stop `altium-mcp`, run
+`eda-agent`, then switch back. Both steps have a manual fallback.
+
+For the same reason `run_altium_script` is used sparingly:
 a runtime error leaves the script halted in the debugger, which blocks *every* MCP
 tool until a human presses `Ctrl+F3`.
 

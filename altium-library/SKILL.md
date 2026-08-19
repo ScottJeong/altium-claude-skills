@@ -267,6 +267,8 @@ fp.add_component_body_rectangle(
 - Altium 의 **Manufacturer Part Search** 패널 — 계정으로 Altium 안에서 바로 모델을 가져온다.
   GUI 라 에이전트가 못 몬다
 - CSE/SnapEDA 에 로그인해서 zip 을 받아오면 `lib_extract_cse_zip` 으로 설치 계획을 뽑을 수 있다
+  (**`eda-agent` 도구다. 선택 사항** — 없으면 zip 을 직접 풀어 쓴다.
+  `altium-mcp` 와 **동시에 띄우면 안 된다** → `references/tool-traps.md`)
 
 **1순위 — KiCad packages3D.** 파일명이 형상 그 자체라 검색이 쉽다.
 
@@ -291,8 +293,10 @@ modules.easyeda.com/3dmodel/<uuid>                      -> OBJ   (Altium 못 씀
 modules.easyeda.com/qAxj6KHrDKw4blvCG8QJPs7Y/<uuid>     -> STEP  (이걸 쓴다)
 ```
 
-uuid 는 `lib_easyeda_import(lcsc_id=..., target='inspect')` 의 `model_3d_uuid`.
-LCSC 부품번호는 `jlc_search` 로 찾는다 (EasyEDA 검색 API 는 죽어 있다).
+uuid 는 `lib_easyeda_import(lcsc_id=..., target='inspect')` 의 `model_3d_uuid`
+(**`eda-agent` 도구, 선택 사항**). LCSC 부품번호는 `pcbparts` 의 `jlc_search` 로 찾는다
+(EasyEDA 검색 API 는 죽어 있다). 둘 다 없으면 LCSC 사이트에서 부품번호를 직접 찾고
+uuid 는 EasyEDA 부품 페이지에서 확인한다.
 
 **[주의] EasyEDA 모델에는 여분 형상이 붙어 있을 수 있다.** 실제로 QFN 모델에서
 바디·높이는 규격에 맞는데 **바닥 근처에 바디보다 훨씬 넓게 퍼진 평판**이 붙어 있는 것을 봤다.

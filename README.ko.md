@@ -72,8 +72,12 @@ C:\tools\edatools\Scripts\pip install altium-monkey pymupdf
 
 `WebSearch` / `WebFetch` 는 데이터시트를 못 찾을 때 쓴다 (Claude Code 기본 도구).
 
-**`eda-agent` 는 쓰지 않는다.** Altium 안에 자체 폴링 루프를 띄워야 하는데
+**`eda-agent` 를 `altium-mcp` 와 동시에 띄우지 마라.** Altium 안에 자체 폴링 루프를 띄워야 하는데
 **Altium 의 스크립팅 슬롯이 전역으로 하나**라, 그걸 띄우면 `altium-mcp` 브릿지가 죽는다.
+`altium-library` 의 3D 모델 절에 `eda-agent` 도구를 쓰는 **선택 단계**가 둘 있다
+(`lib_extract_cse_zip`, `lib_easyeda_import`). 그 단계만 쓰려면 `altium-mcp` 를 내리고
+`eda-agent` 를 띄운 뒤 끝나면 되돌린다. 없어도 수동으로 대체된다.
+
 같은 이유로 `altium-mcp` 의 `run_altium_script` 도 꼭 필요할 때만 쓴다 —
 런타임 에러가 나면 스크립트가 디버거에 멈춰 **모든 MCP 도구가 막히고 사람이
 `Ctrl+F3` 을 눌러야** 풀린다.
