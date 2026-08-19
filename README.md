@@ -138,6 +138,47 @@ For the same reason `run_altium_script` is used sparingly: a runtime error leave
 the script halted in Altium's debugger, which blocks *every* MCP tool until a human
 presses `Ctrl+F3`.
 
+## Using them
+
+Skills fire on their own. You do not name them — just describe the work in the
+project, and Claude picks the matching skill from its `description`.
+
+```
+# altium-library
+"이 커넥터 데이터시트로 풋프린트랑 심볼 만들어줘"        (a datasheet PDF attached)
+"make a footprint for this connector"
+"이거 라이브러리에 이미 있는지 봐줘"
+
+# altium-schematic-review
+"회로도 검토해줘"
+"review this schematic, anything unconnected?"
+"플로팅 핀 있나 봐줘"
+
+# altium-pcb-placement
+"회로도 다 됐으니 PCB 배치하자"
+"보드 크기 얼마나 나와야 해?"
+"이 소켓 어느 방향으로 놓아야 하지?"
+```
+
+What the skills change is **how Claude works**, not what you type. It will measure
+before drawing, check the datasheet before calling a pin a defect, and show you a
+1:1 plan drawing before touching the PcbDoc.
+
+### The shape of a session
+
+| Stage | You give | You get back |
+|---|---|---|
+| Library | datasheet / 2D drawing, where your libraries are | `.SchLib` / `.PcbLib` plus the build script that made them |
+| Schematic review | the `.SchDoc` (saved) | findings split into **act / harmless / unverified**, each with a datasheet citation |
+| PCB placement | constraints (which edge for the big connector, enclosure limits) | a 1:1 plan drawing to argue with, then real coordinates once you approve |
+
+Two things are asked of you, and both matter:
+
+- **Save in Altium before file-parsing steps.** The scripts read the file on disk.
+  If Altium holds unsaved changes, the answer is about an old version
+- **Placement is not injected until you say so.** The plan drawing is cheap to
+  redo, the PcbDoc is not. Expect 2-4 rounds on the drawing
+
 ## What works without Altium
 
 | | Needs Altium | Files only |
