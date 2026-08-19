@@ -16,6 +16,18 @@ import io
 import os
 import sys
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 # Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
 # 콘솔 설정과 무관하게 utf-8 로 낸다.
 try:
@@ -99,7 +111,7 @@ def survey_pcb(path):
             with quiet():
                 n_pads = len(list(f.pads))
             out.append({'name': f.name, 'count': n_pads, 'parts': 0,
-                        'desc': (f.description or '')[:44], 'fp': []})
+                        'desc': (getattr(f, 'description', None) or '')[:44], 'fp': []})
         except Exception as e:
             out.append({'name': f.name, 'count': -1, 'parts': 0,
                         'desc': f'<파싱실패 {type(e).__name__}>', 'fp': []})
@@ -108,6 +120,9 @@ def survey_pcb(path):
 
 def main():
     args = parse_args()
+    import os
+    if not os.path.exists(args.path):
+        sys.exit(f'[라이브러리] 경로가 없다: {args.path}')
     q = args.find.lower() if args.find else None
     total = 0
     for lib_path in iter_libs(args.path):

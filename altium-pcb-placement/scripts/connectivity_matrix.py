@@ -12,6 +12,18 @@ import itertools
 import os
 import sys
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 except AttributeError:
@@ -45,6 +57,7 @@ def parse_args():
 
 def main():
     a = parse_args()
+    _need(a.schdoc, 'SchDoc')
     N = load_net_erc()
     with N.quiet():
         nets, _comps = N.build(a.schdoc)

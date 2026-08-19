@@ -13,6 +13,18 @@ except AttributeError:
 
 from altium_monkey import AltiumPcbDoc
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 MIL = 39.3700787402
 IU = 10000.0
 
@@ -44,6 +56,7 @@ def main():
     ap.add_argument('--gap', type=float, default=0.0,
                     help='요구 최소 간격 mm. 0 이면 실제 교차만')
     a = ap.parse_args()
+    _need(a.pcbdoc, 'PcbDoc')
 
     d = AltiumPcbDoc.from_file(a.pcbdoc)
     boxes = []

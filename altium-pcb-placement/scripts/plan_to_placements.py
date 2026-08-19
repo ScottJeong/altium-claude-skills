@@ -22,6 +22,18 @@ import math
 import os
 import sys
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 except AttributeError:
@@ -120,6 +132,11 @@ def main():
                     metavar=('X_MM', 'Y_MM'),
                     help='보드 좌하단이 Altium 좌표계에서 어디인가 (mm). 기본 0,0')
     a = ap.parse_args()
+    _need(a.plan, 'plan.json')
+    if a.schdoc:
+        _need(a.schdoc, 'SchDoc')
+    for d in (a.libs or []):
+        _need(d, '라이브러리', 'dir')
 
     with open(a.plan, encoding='utf-8') as f:
         plan = json.load(f)

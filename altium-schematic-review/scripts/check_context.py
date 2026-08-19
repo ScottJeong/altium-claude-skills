@@ -15,6 +15,18 @@ from collections import Counter
 from datetime import datetime
 import sys
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 # Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
 # 콘솔 설정과 무관하게 utf-8 로 낸다.
 try:
@@ -68,6 +80,9 @@ def main():
     ap.add_argument('target')
     ap.add_argument('--datasheets', help='데이터시트 폴더 (없으면 자동 탐색)')
     args = ap.parse_args()
+    import os
+    if not os.path.exists(args.target):
+        sys.exit(f'[대상] 경로가 없다: {args.target}')
 
     schdocs = find_schdocs(args.target)
     if not schdocs:

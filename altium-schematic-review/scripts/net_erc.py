@@ -20,6 +20,18 @@ from collections import Counter, defaultdict
 from altium_monkey import AltiumSchDoc
 import sys
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 # Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
 # 콘솔 설정과 무관하게 utf-8 로 낸다.
 try:
@@ -269,6 +281,7 @@ def main():
     ap.add_argument('--net')
     ap.add_argument('--limit', type=int, default=12)
     args = ap.parse_args()
+    _need(args.schdoc, 'SchDoc')
 
     nets, comps = build(args.schdoc)
     withpins = {k: v for k, v in nets.items() if v['pins']}

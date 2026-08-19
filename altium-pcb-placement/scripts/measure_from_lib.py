@@ -19,6 +19,18 @@ except AttributeError:
 
 from altium_monkey import AltiumPcbLib, AltiumSchDoc
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 MIL = 39.3700787402
 IU = 10000.0
 
@@ -101,6 +113,9 @@ def main():
     ap.add_argument('--libs', nargs='+', required=True)
     ap.add_argument('--only', nargs='*')
     a = ap.parse_args()
+    _need(a.schdoc, 'SchDoc')
+    for d in a.libs:
+        _need(d, '라이브러리', 'dir')
 
     smap = sch_map(a.schdoc)
     idx = lib_index(a.libs)

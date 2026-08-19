@@ -21,6 +21,18 @@ except AttributeError:
 
 from altium_monkey import AltiumBoardOutline, AltiumPcbDoc, BoardOutlineVertex
 
+def _need(path, what='입력', kind='file'):
+    """경로를 검증한다. 없으면 스택 대신 한 줄로 알리고 끝낸다."""
+    import os
+    if kind == 'dir':
+        if not os.path.isdir(path):
+            sys.exit(f'[{what}] 폴더가 없다: {path}')
+    else:
+        if not os.path.isfile(path):
+            sys.exit(f'[{what}] 파일이 없다: {path}')
+    return path
+
+
 MIL = 39.3700787402
 
 HOLE_D_MM_DEFAULT = 3.2     # M3
@@ -80,6 +92,7 @@ def main():
     ap.add_argument('--no-backup', action='store_true',
                     help='제자리 수정 시 .bak 을 남기지 않는다')
     a = ap.parse_args()
+    _need(a.pcbdoc, 'PcbDoc')
     dst = a.out or a.pcbdoc
 
     BOARD_W_MM, BOARD_H_MM = a.width, a.height
