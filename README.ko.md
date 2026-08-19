@@ -6,18 +6,90 @@ Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 심볼·풋프린트 제작, 회로도 검토, PCB 배치 세 단계를 다룬다.
 
 실제 보드 한 장(부품 175개)을 회로도 검토부터 배치까지 끌고 가며 썼다.
-그래서 여기 적힌 함정은 실제로 걸리는 것들이고, 전부 **규칙 + 실측 숫자** 형태로 적혀 있다.
 
-| 스킬 | 하는 일 |
-|---|---|
-| `altium-library` | 심볼(.SchLib)·풋프린트(.PcbLib) 를 코드로 만들고 검증. 데이터시트·2D 도면 실측 포함 |
-| `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 |
-| `altium-pcb-placement` | PCB 배치 — 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 배치 가안 도면, 좌표 투입, 겹침 검사 |
+| 스킬 | 하는 일 | 안 하는 일 |
+|---|---|---|
+| `altium-library` | 심볼(.SchLib)·풋프린트(.PcbLib) 를 코드로 만들고 검증. 데이터시트·2D 도면 실측 포함 | 도면 없이 추측해서 만들지 않는다 |
+| `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 | 읽고 판정만 한다. 회로도를 고치지 않는다 |
+| `altium-pcb-placement` | 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 1:1 배치 가안, 좌표 투입, 겹침 검사 | 라우팅·자동배선을 하지 않는다 |
+
+---
+
+## 5분 안에 확인해보기
+
+**Altium 도 MCP 도 없이** 되는지 먼저 본다. 스크립트 15개 전부 파일을 직접 파싱하므로
+Altium 이 안 떠 있어도 된다.
+
+```powershell
+git clone https://github.com/ScottJeong/altium-claude-skills.git C:\tools\altium-claude-skills
+
+py -3.12 -m venv C:\tools\edatools
+C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
+
+# 아무 라이브러리 폴더나 가리켜 본다
+C:\tools\edatools\Scripts\python.exe `
+    C:\tools\altium-claude-skills\altium-library\scripts\survey_library.py `
+    "C:\내\라이브러리\폴더"
+```
+
+라이브러리 목록이 나오면 준비 끝이다. 여기까지 되면 아래 **스킬 설치**로 간다.
+안 되면 [잘 안 될 때](#잘-안-될-때) 를 본다.
+
+---
 
 ## 실제로 뭐가 들어 있나
 
-스킬마다 `SKILL.md`(절차) + `references/`(함정 상세) + `scripts/` 다.
-어렵게 얻은 것은 대부분 `references/` 에 있다 — **"이렇게 깨지고, 이렇게 알아본다"** 가 약 1,400줄.
+스킬마다 `SKILL.md`(절차) + `references/`(함정 상세) + `scripts/`(실행 도구) 다.
+
+### 스크립트 15개
+
+**전부 Altium 없이 돈다.** 파일을 `altium_monkey` 로 직접 파싱하기 때문이다.
+Claude 가 알아서 부르지만 직접 돌려도 되고, 전부 `--help` 가 있다.
+
+#### `altium-library/scripts/`
+
+| 스크립트 | 하는 일 |
+|---|---|
+| `survey_library.py` | **새로 만들기 전에 반드시 돌린다.** 라이브러리에 이미 뭐가 있는지 훑는다. 심볼만 있고 풋프린트가 없는 경우가 흔한데, 모르고 만들면 중복이 생기고 나중에 어느 게 진짜인지 아무도 모른다. 제조사 약칭·핀수로도 찾는다 |
+| `measure_drawing.py` | 벤더 2D 도면 PDF 에서 홀 좌표·외곽을 **벡터로** 실측. 도면 문자는 벡터 아웃라인이라 텍스트 추출이 안 되고 렌더 픽셀 눈대중은 틀린다. **이미 아는 피치로 pt/mm 스케일을 역산**한다 |
+| `fit_symbol_body.py` | 심볼 본체 최소 크기를 겹침 전수검사로 계산. 상/하 핀 이름은 90도 돌아 들어와서, 본체가 작으면 이름끼리 겹치는데 **좌표 검산으로도 SVG 렌더로도 안 잡힌다** |
+| `diff_symbol.py` | 기준 심볼과 내가 만든 것을 **3층**으로 비교 — 파싱된 속성 / 레코드 순서(z-order) / 원시 바이트. 속성만 비교하면 "일치" 인데 화면은 딴판인 경우가 실제로 있었다 |
+
+#### `altium-schematic-review/scripts/`
+
+| 스크립트 | 하는 일 |
+|---|---|
+| `check_context.py` | **§0 전제 확인.** 검토 시작 전에 헛수고를 막는다. 가장 흔한 사고가 Altium 이 미저장인데 디스크 파일을 읽고 "전원부가 없다" 같은 결론을 내는 것이다 |
+| `net_erc.py` | 회로도 넷 구성 + ERC 유사 검사 4종. 배선 위 핀만 세면 넷을 절반 넘게 놓친다 — **핀-핀 직결·핀-전원포트 직결·hidden 핀**을 다 처리한다 |
+| `audit_footprints.py` | 회로도 부품의 풋프린트 링크를 뽑아 실물 라이브러리와 대조. PCB 로 넘어가기 전에 "풋프린트 없는 부품" 을 잡는다 |
+
+#### `altium-pcb-placement/scripts/`
+
+| 스크립트 | 하는 일 |
+|---|---|
+| `measure_from_lib.py` | **PcbDoc 없이** 회로도 + 라이브러리 폴더만으로 풋프린트 실측. Update PCB 를 안 돌려도 된다 |
+| `connectivity_matrix.py` | 부품쌍 연결 매트릭스 + 기준부품 핀별 상대. 배치 근거는 "누가 누구와 몇 넷으로 붙어 있나" 다. 팬아웃 큰 전원 레일은 근거가 못 되므로 뺀다 |
+| `pin_side_map.py` | 핀번호 → 변 매핑으로 **IC 회전 4안을 계산**. QFN/QFP 는 핀번호가 변을 결정하므로 취향이 아니라 계산으로 나온다 |
+| `connector_facing.py` | 커넥터 개구부 방향 판정. 케이블 들어가는 쪽엔 패드가 없고 하우징만 있다 — **패드 bbox 와 실크 bbox 를 따로 재서 실크가 더 튀어나온 쪽**이 개구부다. 데이터시트를 안 봐도 된다 |
+| `plan_svg.py` | 배치 가안 JSON → **축척 1:1** SVG/PNG. 눈대중 그림은 "들어갈 것 같다" 를 만들고 그건 늘 틀린다 |
+| `plan_to_placements.py` | 가안 JSON → `place_components` 입력(mils). 가안은 mm·좌하단·**bbox**, Altium 은 mils·**컴포넌트 원점** — 이 둘은 같지 않다 |
+| `overlap_check.py` | 배치 후 부품 bbox 교차 + 보드 밖으로 나간 것 검사 |
+| `apply_outline.py` | 보드 외곽(모서리 라운드) + 대칭 고정홀 삽입. 제자리 수정이면 `.bak` 을 먼저 만든다 |
+
+실행 예 — 커넥터 개구부 판정:
+
+```
+$ python connector_facing.py board.PcbDoc --libs C:\libs
+
+des   개구부   돌출mm    상변  하변  좌변  우변
+J1    -Y       9.06      180   0     270   90
+```
+
+「이 커넥터를 상변에 놓으려면 180도」 라는 뜻이다. 데이터시트를 뒤질 필요가 없다.
+
+### 참고 문서 (`references/`)
+
+어렵게 얻은 것은 대부분 여기 있다 — **"이렇게 깨지고, 이렇게 알아본다"** 가 약 1,400줄.
 
 | 파일 | 무엇을 막아주나 |
 |---|---|
@@ -32,64 +104,84 @@ Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 | `altium-pcb-placement/references/injection.md` | 컴포넌트 원점 ≠ bbox 중심, 오서링 빌더가 직접 수정을 삼키는 것 |
 | `altium-pcb-placement/references/plan-schema.md` | `plan.json` 형식. 동작 예제는 `examples/` 에 |
 
-## 설치
+---
 
-clone 한 뒤 `~/.claude/skills/` 에 **디렉터리 정션**을 건다.
-정션은 심볼릭 링크와 달리 관리자 권한이 필요 없다.
+## 스킬 설치
+
+clone 한 폴더의 스킬 3개를 `~/.claude/skills/` 에 **디렉터리 정션**으로 건다.
+정션은 심볼릭 링크와 달리 관리자 권한이 필요 없고, 동기화 클라이언트에는 평범한
+폴더로 보인다.
 
 ```powershell
-git clone https://github.com/ScottJeong/altium-claude-skills.git `
-    C:\path\to\altium-claude-skills
-
-$repo = "C:\path\to\altium-claude-skills"
+$repo = "C:\tools\altium-claude-skills"
 foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review') {
     New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\$s" -Target "$repo\$s"
 }
 ```
 
+### 제대로 걸렸는지 확인
+
+```powershell
+# 1. 정션으로 잡히는지 (LinkType 이 Junction 이어야 한다)
+Get-ChildItem "$env:USERPROFILE\.claude\skills" |
+    Select-Object Name, LinkType, Target
+
+# 2. 스킬 본문이 정션 너머로 읽히는지
+Get-Content "$env:USERPROFILE\.claude\skills\altium-library\SKILL.md" -TotalCount 3
+```
+
+3. Claude Code 를 **새로 열고** "이 회로도 검토해줘" 처럼 말해본다.
+   스킬이 걸리면 Claude 가 그 이름을 말하며 시작한다.
+
 **정션은 절대경로를 굽는다.** repo 를 옮기면 정션을 다시 만들어야 한다.
-정션이 싫으면 세 폴더를 `~/.claude/skills/` 로 그냥 복사해도 된다 —
-대신 `git pull` 한 게 자동으로 반영되지 않는다.
+정션이 싫으면 세 폴더를 그냥 복사해도 되지만, `git pull` 이 반영되지 않는다.
 
-## 스킬 사이 의존
+### 스킬 사이 의존
 
-`altium-pcb-placement` 의 `connectivity_matrix.py` 는 `altium-schematic-review` 의
-`net_erc.py` 를 가져다 쓴다 (형제 폴더 상대경로). **둘을 같이 설치해야 한다.**
+`altium-pcb-placement/scripts/connectivity_matrix.py` 는 `altium-schematic-review` 의
+`net_erc.py` 를 형제 폴더 상대경로로 가져다 쓴다. **둘을 같이 설치해야 한다.**
+
+---
 
 ## 필요한 것
 
+### 검증된 조합
+
+여기서 실제로 돌려본 조합이다. 다른 버전이 안 된다는 뜻은 아니고, 안 되면 알려달라.
+
+| | 버전 |
+|---|---|
+| OS | Windows 11 |
+| Python | 3.12.13 |
+| `altium-monkey` | 2026.8.11 |
+| `pymupdf` | 1.28.2 (MuPDF 1.28.2) |
+
 ### Altium Designer
 
-Windows. 파일만 읽는 단계는 Altium 을 안 켜도 된다. 배치·스크린샷·라이브 조회는 켜야 한다.
+Windows. **파일만 읽고 쓰는 단계는 Altium 을 안 켜도 된다.**
+좌표 투입·스크린샷·라이브 라이브러리 조회는 켜야 한다.
 
 ### Python 3.12 + `altium_monkey`
 
-스크립트 대부분이 Altium 파일(`.SchDoc` `.PcbDoc` `.PcbLib` `.SchLib`)을
+스크립트가 Altium 파일(`.SchDoc` `.PcbDoc` `.PcbLib` `.SchLib`)을
 [`altium_monkey`](https://github.com/wavenumber-eng/altium_monkey) 로 **직접 파싱**한다.
-그래서 Altium 이 안 떠 있어도 된다. 이 패키지가 Python `<3.13` 을 요구한다.
+이 패키지가 Python `<3.13` 을 요구하므로 3.12 로 venv 를 따로 판다.
 
 ```powershell
-# 1. Python 3.12 가 없으면 설치하고, 이 용도로 venv 를 판다
 py -3.12 -m venv C:\tools\edatools
-
-# 2. 패키지 둘
 C:\tools\edatools\Scripts\python.exe -m pip install altium-monkey pymupdf
-
-# 3. 확인
 C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('ok')"
 ```
 
-스크립트는 **그 venv 의 `python.exe` 를 전체 경로로** 부른다. 스킬 본문은 이걸 `python`
-이라고만 쓰니, PATH 의 `python` 이 그것이라고 가정하지 마라.
+스크립트는 **그 venv 의 `python.exe` 를 전체 경로로** 부른다. 스킬 본문은 이걸
+`python` 이라고만 쓰니, PATH 의 `python` 이 그것이라고 가정하지 마라.
 
-`pymupdf` 는 데이터시트·2D 도면 실측용이다. 벤더 도면은 문자가 벡터 아웃라인이라
-텍스트 추출이 안 되고 렌더해서 읽어야 한다.
+`pymupdf` 는 데이터시트·2D 도면 실측용이다.
 
 ### MCP: `altium-mcp`
 
-떠 있는 Altium 을 조작한다. **배치**(`place_components`)·스크린샷·라이브 라이브러리
-조회에 필요하다. 없으면 파일만 만지는 것은 전부 그대로 된다 — 파싱·실측·회전 계산·
-가안 도면·겹침 검사.
+떠 있는 Altium 을 조작한다. **좌표 투입**(`place_components`)·스크린샷·라이브
+라이브러리 조회에 필요하다. 없으면 파일만 만지는 것은 전부 그대로 된다.
 
 ```powershell
 git clone https://github.com/coffeenmusic/altium-mcp.git C:\tools\altium-mcp
@@ -123,8 +215,7 @@ claude mcp add --transport http pcbparts --scope user https://pcbparts.dev/mcp
 (`lib_extract_cse_zip`, `lib_easyeda_import`). 그 단계만 쓰려면 `altium-mcp` 를 내리고
 `eda-agent` 를 띄운 뒤 되돌린다. 둘 다 수동 대체가 있다.
 
-같은 이유로 `run_altium_script` 는 꼭 필요할 때만 쓴다 — 런타임 에러가 나면 스크립트가
-Altium 디버거에 멈춰 **모든 MCP 도구가 막히고** 사람이 `Ctrl+F3` 을 눌러야 풀린다.
+---
 
 ## 쓰는 법
 
@@ -160,12 +251,30 @@ Claude 가 `description` 을 보고 맞는 스킬을 고른다.
 | 회로도 검토 | 저장된 `.SchDoc` | **조치 필요 / 무해 / 미확인** 3분류, 각각 데이터시트 근거 |
 | PCB 배치 | 제약(큰 커넥터를 어느 변에, 기구 한계) | 1:1 가안 도면 → 승인하면 실제 좌표 투입 |
 
-당신에게 요구하는 건 둘뿐이고, 둘 다 중요하다.
+배치가 실제로 진행되는 순서는 이렇다.
+
+```
+1. 회로도에서 연결 매트릭스를 뽑는다        누가 누구와 몇 넷인가
+2. 라이브러리에서 부품 치수를 실측한다      공칭치로 그리지 않는다
+3. 축을 누적해 보드 사이즈를 역산한다       "대충 100x100" 이 아니라 계산
+4. 주요 IC 회전을 핀->변 매핑으로 정한다    4안을 점수와 함께 제시
+5. 1:1 가안 도면(SVG/PNG)을 보여준다        <- 여기서 2~4회 왕복이 정상
+6. 승인하면 PcbDoc 에 좌표를 투입한다
+7. 겹침·보드 밖 검사를 돌린다
+```
+
+커넥터·소켓·주요 IC 는 왜 그 자리인지 근거를 대고 놓는다.
+저항·커패시터는 관련 IC 옆에 겹치지 않게 모아만 두니 최종 위치는 사람이 잡는다.
+그 자리는 라우팅 의도가 정하는 것이라 규칙으로 만들면 오히려 손해다.
+
+### 당신에게 요구하는 것 둘
 
 - **파일 파싱 단계 전에 Altium 에서 저장할 것.** 스크립트는 디스크의 파일을 읽는다.
   Altium 이 미저장 상태면 옛 버전을 놓고 답하게 된다
 - **배치는 당신이 확정하기 전에는 투입하지 않는다.** 가안 도면은 다시 그리기 싸고
   PcbDoc 은 비싸다. 도면에서 **2~4회 왕복**은 정상이다
+
+---
 
 ## 무엇이 Altium 없이 되나
 
@@ -177,6 +286,23 @@ Claude 가 `description` 을 보고 맞는 스킬을 고른다.
 
 **외주 PCB 설계업체에 넘길 배치 가안은 Altium 없이도 만들 수 있다.**
 회로도와 라이브러리(또는 데이터시트)만 있으면 된다.
+
+---
+
+## 잘 안 될 때
+
+| 증상 | 원인과 조치 |
+|---|---|
+| `altium_monkey 없음. edatools venv 파이썬으로 실행하라.` | PATH 의 `python` 으로 돌렸다. venv 의 `python.exe` 를 **전체 경로로** 부른다 |
+| `pip install altium-monkey` 가 실패한다 | Python 3.13 이상이다. 이 패키지는 `<3.13` 을 요구한다. `py -3.12 -m venv` 로 다시 판다 |
+| 스킬이 안 걸린다 | ① 정션이 `~/.claude/skills/` 아래 있는지 ② Claude Code 를 **새로 열었는지**. 세션 도중에 건 스킬은 그 세션에 안 뜬다 |
+| 검토 결과가 화면과 다르다 | Altium 에서 저장을 안 했다. 스크립트는 디스크 파일을 읽는다. `Ctrl+S` 후 다시 |
+| 외곽·홀을 넣었는데 사라진다 | Altium 이 그 PcbDoc 을 열고 있었다. Altium 이 저장하는 순간 덮인다. 닫거나, 사용자가 저장한 뒤 돌리고 끝나면 reload |
+| MCP 도구가 전부 응답이 없다 | `run_altium_script` 가 런타임 에러로 **Altium 디버거에 멈춰 있다.** Altium 창에서 `Ctrl+F3` 를 눌러야 풀린다. 스크립팅 슬롯이 전역으로 하나라 이때 다른 MCP 도구도 같이 막힌다 |
+| 커넥터가 뒤집혀 있는데 검사가 통과한다 | **bbox 는 180도 회전에 안 변한다.** 겹침·외곽 검사로는 못 잡는다. `connector_facing.py` 로 개구부 방향을 따로 본다 |
+| 부품이 가안보다 몇 mm 밀려 있다 | **컴포넌트 원점 ≠ bbox 중심.** 풋프린트 원점은 pad1 일 수도 몸체 중심일 수도 있다. `plan_to_placements.py` 가 보정하니 좌표를 손으로 넣지 마라 |
+
+---
 
 ## 기여
 

@@ -26,6 +26,7 @@ CLI:
 from __future__ import annotations
 
 import json
+import os
 import sys
 
 # Windows 콘솔 기본 코드페이지(cp949 등)로는 −·✓ 같은 문자를 못 찍어 죽는다.
@@ -110,8 +111,14 @@ def min_square_body(left, right, top, bottom, extra_left=(), extra_bottom=(),
 
 
 def _main(argv):
+    if len(argv) == 2 and argv[1] in ('-h', '--help'):
+        print(__doc__)
+        return 0
     if len(argv) != 2:
         print(__doc__)
+        return 1
+    if argv[1] != '-' and not os.path.isfile(argv[1]):
+        print(f'[핀정의 JSON] 파일이 없다: {argv[1]}')
         return 1
     src = sys.stdin.read() if argv[1] == '-' else open(argv[1], encoding='utf-8').read()
     d = json.loads(src)
