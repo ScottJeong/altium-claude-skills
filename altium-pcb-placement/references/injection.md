@@ -75,6 +75,7 @@ python scripts/plan_to_placements.py plan.json --offsets offsets.json > p2.json
 **Altium 이 그 문서를 열고 있으면 안 된다.** 순서:
 
 ```
+0. 백업                             (스크립트가 <파일>.bak 을 자동으로 뜬다)
 1. 사용자가 Altium 에서 Ctrl+S      (메모리 배치를 디스크로)
 2. apply_outline.py 로 제자리 수정   (백업 먼저 뜬다)
 3. Altium 이 "파일 바뀜, reload?" → Yes

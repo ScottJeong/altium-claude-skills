@@ -9,3 +9,7 @@ __pycache__/
 *.tmp
 ~$*
 desktop.ini
+
+# apply_outline 이 남기는 백업
+*.bak
+*.bak[0-9]*

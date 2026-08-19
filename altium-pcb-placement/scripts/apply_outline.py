@@ -1,12 +1,17 @@
 """PcbDoc 에 보드 외곽(모서리 라운드) + 대칭 고정 M3 홀을 넣는다 (헤드리스).
 
-Altium 이 그 문서를 열고 있으면 안 된다. 열려 있으면 저장 시 덮인다.
+**Altium 이 그 문서를 열고 있으면 안 된다.** 열려 있으면 Altium 이 저장하는 순간
+여기서 쓴 내용이 덮인다. 사용자가 Ctrl+S 한 뒤에 돌리고, 끝나면 reload 하게 한다.
+
+제자리 수정이면 `<파일>.bak` 을 먼저 만든다 (`--no-backup` 으로 끌 수 있다).
 
 설계 규칙 두 가지가 여기 박혀 있다.
   - 외곽 모서리는 라운드. 직각 모서리는 취급 중 깨지고 사람이 베인다
   - 고정홀은 대칭. 비대칭이면 조립 지그·스페이서가 안 맞는다
 """
 import argparse
+import os
+import shutil
 import sys
 
 try:
@@ -72,6 +77,8 @@ def main():
                     help='홀 중심을 변에서 이만큼 안쪽에 (기본 3.0)')
     ap.add_argument('--hole-dia', type=float, default=HOLE_D_MM_DEFAULT, help='홀 지름 mm')
     ap.add_argument('--no-holes', action='store_true')
+    ap.add_argument('--no-backup', action='store_true',
+                    help='제자리 수정 시 .bak 을 남기지 않는다')
     a = ap.parse_args()
     dst = a.out or a.pcbdoc
 
@@ -84,6 +91,16 @@ def main():
     if not ok:
         print(f'  [경고] 고정홀이 비대칭이다 — x={xs} y={ys}')
         print('         부품이 모서리를 먹으면 홀이 아니라 부품을 옮긴다')
+
+    # 제자리 수정이면 백업을 먼저 뜬다. PcbDoc 은 되돌릴 방법이 없다.
+    if dst == a.pcbdoc and not a.no_backup:
+        bak = a.pcbdoc + '.bak'
+        n = 1
+        while os.path.exists(bak):
+            bak = f'{a.pcbdoc}.bak{n}'
+            n += 1
+        shutil.copy2(a.pcbdoc, bak)
+        print(f'백업 → {bak}')
 
     d = AltiumPcbDoc.from_file(a.pcbdoc)
     print(f'열기 OK — 부품 {len(d.components)}, 패드 {len(d.pads)}')
