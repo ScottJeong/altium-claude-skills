@@ -45,7 +45,7 @@ Clone, then link the skill folders into `~/.claude/skills/` with directory
 junctions. Junctions need no admin rights on Windows.
 
 ```powershell
-git clone https://github.com/letjsk/altium-claude-skills.git `
+git clone https://github.com/ScottJeong/altium-claude-skills.git `
     C:\path\to\altium-claude-skills
 
 $repo = "C:\path\to\altium-claude-skills"

@@ -38,7 +38,7 @@ clone 한 뒤 `~/.claude/skills/` 에 **디렉터리 정션**을 건다.
 정션은 심볼릭 링크와 달리 관리자 권한이 필요 없다.
 
 ```powershell
-git clone https://github.com/letjsk/altium-claude-skills.git `
+git clone https://github.com/ScottJeong/altium-claude-skills.git `
     C:\path\to\altium-claude-skills
 
 $repo = "C:\path\to\altium-claude-skills"
