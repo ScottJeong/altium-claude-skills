@@ -13,74 +13,6 @@ Altium 하드웨어 설계를 Claude Code 로 하기 위한 스킬 모음.
 | `altium-schematic-review` | 회로도(.SchDoc) 검토 — 미결선·풋프린트 누락·넷 오류를 찾고 데이터시트로 판정 |
 | `altium-pcb-placement` | PCB 배치 — 보드 사이즈 역산, 주요 IC·커넥터 회전 결정, 배치 가안 도면, 좌표 투입, 겹침 검사. 라우팅은 하지 않는다 |
 
-## 실제로 뭐가 들어 있나
-
-스킬마다 `SKILL.md`(절차) + `references/`(함정 상세) + `scripts/`(실행 도구) 다.
-
-### 스크립트 15개
-
-**전부 Altium 없이 돈다.** 파일을 `altium_monkey` 로 직접 파싱하기 때문이다.
-Claude 가 알아서 부르지만 직접 돌려도 되고, 전부 `--help` 가 있다.
-
-#### `altium-library/scripts/`
-
-| 스크립트 | 하는 일 |
-|---|---|
-| `survey_library.py` | **새로 만들기 전에 반드시 돌린다.** 라이브러리에 이미 뭐가 있는지 훑는다. 심볼만 있고 풋프린트가 없는 경우가 흔한데, 모르고 만들면 중복이 생기고 나중에 어느 게 진짜인지 아무도 모른다. 제조사 약칭·핀수로도 찾는다 |
-| `measure_drawing.py` | 벤더 2D 도면 PDF 에서 홀 좌표·외곽을 **벡터로** 실측. 도면 문자는 벡터 아웃라인이라 텍스트 추출이 안 되고 렌더 픽셀 눈대중은 틀린다. **이미 아는 피치로 pt/mm 스케일을 역산**한다 |
-| `fit_symbol_body.py` | 심볼 본체 최소 크기를 겹침 전수검사로 계산. 상/하 핀 이름은 90도 돌아 들어와서, 본체가 작으면 이름끼리 겹치는데 **좌표 검산으로도 SVG 렌더로도 안 잡힌다** |
-| `diff_symbol.py` | 기준 심볼과 내가 만든 것을 **3층**으로 비교 — 파싱된 속성 / 레코드 순서(z-order) / 원시 바이트. 속성만 비교하면 "일치" 인데 화면은 딴판인 경우가 실제로 있었다 |
-
-#### `altium-schematic-review/scripts/`
-
-| 스크립트 | 하는 일 |
-|---|---|
-| `check_context.py` | **§0 전제 확인.** 검토 시작 전에 헛수고를 막는다. 가장 흔한 사고가 Altium 이 미저장인데 디스크 파일을 읽고 "전원부가 없다" 같은 결론을 내는 것이다 |
-| `net_erc.py` | 회로도 넷 구성 + ERC 유사 검사 4종. 배선 위 핀만 세면 넷을 절반 넘게 놓친다 — **핀-핀 직결·핀-전원포트 직결·hidden 핀**을 다 처리한다 |
-| `audit_footprints.py` | 회로도 부품의 풋프린트 링크를 뽑아 실물 라이브러리와 대조. PCB 로 넘어가기 전에 "풋프린트 없는 부품" 을 잡는다 |
-
-#### `altium-pcb-placement/scripts/`
-
-| 스크립트 | 하는 일 |
-|---|---|
-| `measure_from_lib.py` | **PcbDoc 없이** 회로도 + 라이브러리 폴더만으로 풋프린트 실측. Update PCB 를 안 돌려도 된다 |
-| `connectivity_matrix.py` | 부품쌍 연결 매트릭스 + 기준부품 핀별 상대. 배치 근거는 "누가 누구와 몇 넷으로 붙어 있나" 다. 팬아웃 큰 전원 레일은 근거가 못 되므로 뺀다 |
-| `pin_side_map.py` | 핀번호 → 변 매핑으로 **IC 회전 4안을 계산**. QFN/QFP 는 핀번호가 변을 결정하므로 취향이 아니라 계산으로 나온다 |
-| `connector_facing.py` | 커넥터 개구부 방향 판정. 케이블 들어가는 쪽엔 패드가 없고 하우징만 있다 — **패드 bbox 와 실크 bbox 를 따로 재서 실크가 더 튀어나온 쪽**이 개구부다. 데이터시트를 안 봐도 된다 |
-| `plan_svg.py` | 배치 가안 JSON → **축척 1:1** SVG/PNG. 눈대중 그림은 "들어갈 것 같다" 를 만들고 그건 늘 틀린다 |
-| `plan_to_placements.py` | 가안 JSON → `place_components` 입력(mils). 가안은 mm·좌하단·**bbox**, Altium 은 mils·**컴포넌트 원점** — 이 둘은 같지 않다 |
-| `overlap_check.py` | 배치 후 부품 bbox 교차 + 보드 밖으로 나간 것 검사 |
-| `apply_outline.py` | 보드 외곽(모서리 라운드) + 대칭 고정홀 삽입. 제자리 수정이면 `.bak` 을 먼저 만든다 |
-
-실행 예 — 커넥터 개구부 판정:
-
-```
-$ python connector_facing.py board.PcbDoc --libs C:\libs
-
-des   개구부   돌출mm    상변  하변  좌변  우변
-J1    -Y       9.06      180   0     270   90
-```
-
-「이 커넥터를 상변에 놓으려면 180도」 라는 뜻이다. 데이터시트를 뒤질 필요가 없다.
-
-### 참고 문서 (`references/`)
-
-어렵게 얻은 것은 대부분 여기 있다 — **"이렇게 깨지고, 이렇게 알아본다"** 가 약 1,400줄.
-
-| 파일 | 무엇을 막아주나 |
-|---|---|
-| `altium-library/references/altium-monkey-api.md` | 단위 규약(입력 mil, 되읽기 10mil), z-order 때문에 핀 이름이 안 보이는 것, 파라미터가 엉뚱한 좌표로 들어가는 것 |
-| `altium-library/references/tool-traps.md` | `altium-mcp` / `eda-agent` 가 이상하게 구는 지점과, 틀린 결과가 어떻게 생겼는지 |
-| `altium-library/references/drawing-measurement.md` | 벤더 도면은 문자가 벡터 아웃라인이다. 렌더 픽셀 눈대중은 세 번 하면 세 번 틀린다 |
-| `altium-schematic-review/references/pin-verdict.md` | 플로팅 핀이 진짜 결함인지 판정하는 법 |
-| `altium-schematic-review/references/altium-script-traps.md` | `run_altium_script` 가 디버거에 멈춰 모든 MCP 도구를 막는 것 |
-| `altium-schematic-review/references/net-build-notes.md` | 기하 넷리스트가 Altium 컴파일러와 어긋나는 이유 |
-| `altium-pcb-placement/references/rotation-decision.md` | 핀→변 매핑으로 IC 회전 유도, 커넥터 개구부 방향 |
-| `altium-pcb-placement/references/board-sizing.md` | 보드 사이즈 역산, 고정홀 대칭, 모서리 라운드 |
-| `altium-pcb-placement/references/injection.md` | 컴포넌트 원점 ≠ bbox 중심, 오서링 빌더가 직접 수정을 삼키는 것 |
-| `altium-pcb-placement/references/plan-schema.md` | `plan.json` 형식. 동작 예제는 `examples/` 에 |
-
----
 
 ## 설치
 
@@ -116,7 +48,7 @@ C:\tools\edatools\Scripts\python.exe -c "import altium_monkey, pymupdf; print('o
 동기화 클라이언트에는 평범한 폴더로 보인다.
 
 ```powershell
-$repo = "C:\tools\altium-claude-skills"
+$repo = "C:\tools\altium-claude-skills"      # 1단계에서 clone 한 경로
 foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review') {
     New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\$s" -Target "$repo\$s"
 }
@@ -248,6 +180,11 @@ Claude 가 `description` 을 보고 맞는 스킬을 고른다.
 | 회로도 검토 | 저장된 `.SchDoc` | **조치 필요 / 무해 / 미확인** 3분류, 각각 데이터시트 근거 |
 | PCB 배치 | 제약(큰 커넥터를 어느 변에, 기구 한계) | 1:1 가안 도면 → 승인하면 실제 좌표 투입 |
 
+가안 도면은 이렇게 나온다. 아래 그림은 `altium-pcb-placement/examples/plan.example.json`
+을 `plan_svg.py` 로 렌더한 것이고, 그대로 돌려볼 수 있다.
+
+![배치 가안 예시](altium-pcb-placement/examples/plan.example.png)
+
 배치가 실제로 진행되는 순서는 이렇다.
 
 ```
@@ -270,6 +207,81 @@ Claude 가 `description` 을 보고 맞는 스킬을 고른다.
   Altium 이 미저장 상태면 옛 버전을 놓고 답하게 된다
 - **배치는 당신이 확정하기 전에는 투입하지 않는다.** 가안 도면은 다시 그리기 싸고
   PcbDoc 은 비싸다. 도면에서 **2~4회 왕복**은 정상이다
+
+---
+
+## 실제로 뭐가 들어 있나
+
+스킬마다 `SKILL.md`(절차) + `references/`(함정 상세) + `scripts/`(실행 도구) 다.
+
+### 스크립트 15개
+
+**전부 Altium 없이 돈다.** 파일을 `altium_monkey` 로 직접 파싱하기 때문이다.
+Claude 가 알아서 부르지만 직접 돌려도 되고, 전부 `--help` 가 있다.
+
+#### `altium-library/scripts/`
+
+| 스크립트 | 하는 일 |
+|---|---|
+| `survey_library.py` | **새로 만들기 전에 반드시 돌린다.** 라이브러리에 이미 뭐가 있는지 훑는다. 심볼만 있고 풋프린트가 없는 경우가 흔한데, 모르고 만들면 중복이 생기고 나중에 어느 게 진짜인지 아무도 모른다. 제조사 약칭·핀수로도 찾는다 |
+| `measure_drawing.py` | 벤더 2D 도면 PDF 에서 홀 좌표·외곽을 **벡터로** 실측. 도면 문자는 벡터 아웃라인이라 텍스트 추출이 안 되고 렌더 픽셀 눈대중은 틀린다. **이미 아는 피치로 pt/mm 스케일을 역산**한다 |
+| `fit_symbol_body.py` | 심볼 본체 최소 크기를 겹침 전수검사로 계산. 상/하 핀 이름은 90도 돌아 들어와서, 본체가 작으면 이름끼리 겹치는데 **좌표 검산으로도 SVG 렌더로도 안 잡힌다** |
+| `diff_symbol.py` | 기준 심볼과 내가 만든 것을 **3층**으로 비교 — 파싱된 속성 / 레코드 순서(z-order) / 원시 바이트. 속성만 비교하면 "일치" 인데 화면은 딴판인 경우가 실제로 있었다 |
+
+#### `altium-schematic-review/scripts/`
+
+| 스크립트 | 하는 일 |
+|---|---|
+| `check_context.py` | **§0 전제 확인.** 검토 시작 전에 헛수고를 막는다. 가장 흔한 사고가 Altium 이 미저장인데 디스크 파일을 읽고 "전원부가 없다" 같은 결론을 내는 것이다 |
+| `net_erc.py` | 회로도 넷 구성 + ERC 유사 검사 4종. 배선 위 핀만 세면 넷을 절반 넘게 놓친다 — **핀-핀 직결·핀-전원포트 직결·hidden 핀**을 다 처리한다 |
+| `audit_footprints.py` | 회로도 부품의 풋프린트 링크를 뽑아 실물 라이브러리와 대조. PCB 로 넘어가기 전에 "풋프린트 없는 부품" 을 잡는다 |
+
+#### `altium-pcb-placement/scripts/`
+
+| 스크립트 | 하는 일 |
+|---|---|
+| `measure_from_lib.py` | **PcbDoc 없이** 회로도 + 라이브러리 폴더만으로 풋프린트 실측. Update PCB 를 안 돌려도 된다 |
+| `connectivity_matrix.py` | 부품쌍 연결 매트릭스 + 기준부품 핀별 상대. 배치 근거는 "누가 누구와 몇 넷으로 붙어 있나" 다. 팬아웃 큰 전원 레일은 근거가 못 되므로 뺀다 |
+| `pin_side_map.py` | 핀번호 → 변 매핑으로 **IC 회전 4안을 계산**. QFN/QFP 는 핀번호가 변을 결정하므로 취향이 아니라 계산으로 나온다 |
+| `connector_facing.py` | 커넥터 개구부 방향 판정. 케이블 들어가는 쪽엔 패드가 없고 하우징만 있다 — **패드 bbox 와 실크 bbox 를 따로 재서 실크가 더 튀어나온 쪽**이 개구부다. 데이터시트를 안 봐도 된다 |
+| `plan_svg.py` | 배치 가안 JSON → **축척 1:1** SVG/PNG. 눈대중 그림은 "들어갈 것 같다" 를 만들고 그건 늘 틀린다 |
+| `plan_to_placements.py` | 가안 JSON → `place_components` 입력(mils). 가안은 mm·좌하단·**bbox**, Altium 은 mils·**컴포넌트 원점** — 이 둘은 같지 않다 |
+| `overlap_check.py` | 배치 후 부품 bbox 교차 + 보드 밖으로 나간 것 검사 |
+| `apply_outline.py` | 보드 외곽(모서리 라운드) + 대칭 고정홀 삽입. 제자리 수정이면 `.bak` 을 먼저 만든다 |
+
+실행 예 — 커넥터 개구부 판정. 아래 `python` 은 [설치 2단계](#2-python-312-venv) 에서
+만든 venv 의 `python.exe` 를 전체 경로로 부른 것이다.
+
+```
+> python connector_facing.py board.SchDoc --libs C:\libs
+
+des  개구부 돌출 mm     상변  하변  좌변  우변   풋프린트
+J1   -Y       9.06      180    0   270    90   RJ45_J1B1211CCD
+J2   -Y       2.21      180    0   270    90   USB-C_16P
+
+숫자 = 그 변에 놓을 때 줘야 할 rotation (반시계 도).
+개구부가 보드 바깥을 향해야 한다. bbox 는 180° 회전으로 안 변하므로
+겹침·외곽 검사에 안 걸린다 — 이 표로 따로 확인해야 한다.
+```
+
+「J1 을 상변에 놓으려면 180도」 라는 뜻이다. 데이터시트를 뒤질 필요가 없다.
+
+### 참고 문서 (`references/`)
+
+어렵게 얻은 것은 대부분 여기 있다 — **"이렇게 깨지고, 이렇게 알아본다"** 가 약 1,400줄.
+
+| 파일 | 무엇을 막아주나 |
+|---|---|
+| `altium-library/references/altium-monkey-api.md` | 단위 규약(입력 mil, 되읽기 10mil), z-order 때문에 핀 이름이 안 보이는 것, 파라미터가 엉뚱한 좌표로 들어가는 것 |
+| `altium-library/references/tool-traps.md` | `altium-mcp` / `eda-agent` 가 이상하게 구는 지점과, 틀린 결과가 어떻게 생겼는지 |
+| `altium-library/references/drawing-measurement.md` | 벤더 도면은 문자가 벡터 아웃라인이다. 렌더 픽셀 눈대중은 세 번 하면 세 번 틀린다 |
+| `altium-schematic-review/references/pin-verdict.md` | 플로팅 핀이 진짜 결함인지 판정하는 법 |
+| `altium-schematic-review/references/altium-script-traps.md` | `run_altium_script` 가 디버거에 멈춰 모든 MCP 도구를 막는 것 |
+| `altium-schematic-review/references/net-build-notes.md` | 기하 넷리스트가 Altium 컴파일러와 어긋나는 이유 |
+| `altium-pcb-placement/references/rotation-decision.md` | 핀→변 매핑으로 IC 회전 유도, 커넥터 개구부 방향 |
+| `altium-pcb-placement/references/board-sizing.md` | 보드 사이즈 역산, 고정홀 대칭, 모서리 라운드 |
+| `altium-pcb-placement/references/injection.md` | 컴포넌트 원점 ≠ bbox 중심, 오서링 빌더가 직접 수정을 삼키는 것 |
+| `altium-pcb-placement/references/plan-schema.md` | `plan.json` 형식. 동작 예제는 `examples/` 에 |
 
 ---
 

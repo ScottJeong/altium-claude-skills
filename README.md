@@ -14,78 +14,6 @@ through to placement.
 | `altium-schematic-review` | Review a schematic (.SchDoc) — find unconnected pins, missing footprints and net errors, then judge each one against the datasheet |
 | `altium-pcb-placement` | PCB placement — derive board size, decide rotation for main ICs and connectors, produce a 1:1 placement plan, inject coordinates, check overlaps. It does not route |
 
-## What is actually in here
-
-Each skill is `SKILL.md` (the procedure) + `references/` (trap detail) +
-`scripts/` (runnable tools).
-
-### The 15 scripts
-
-**All of them run without Altium**, because they parse the files with
-`altium_monkey`. Claude calls them for you, but you can run them yourself —
-they all take `--help`.
-
-#### `altium-library/scripts/`
-
-| Script | What it does |
-|---|---|
-| `survey_library.py` | **Run this before authoring anything.** Surveys what the library already holds. Having the symbol but not the footprint is common; author it blindly and you get a duplicate that nobody can later tell apart. Also searches by manufacturer abbreviation and pin count |
-| `measure_drawing.py` | Measures hole coordinates and outlines from a vendor 2D drawing PDF **as vectors**. Drawing glyphs are vector outlines, so text extraction fails and eyeballing rendered pixels is wrong. It **back-solves the pt/mm scale from a pitch you already know** |
-| `fit_symbol_body.py` | Computes the minimum symbol body size by exhaustive overlap test. Top and bottom pin names come in rotated 90°, so a small body makes names collide — and **neither coordinate arithmetic nor an SVG render catches it** |
-| `diff_symbol.py` | Compares a reference symbol against yours in **three layers** — parsed properties, record order (z-order), raw bytes. Comparing properties alone reported "identical" while the Altium canvas looked nothing alike |
-
-#### `altium-schematic-review/scripts/`
-
-| Script | What it does |
-|---|---|
-| `check_context.py` | **Precondition check.** Stops wasted work before review starts. The most common accident is reading the on-disk file while Altium holds unsaved edits, then concluding things like "there is no power section" |
-| `net_erc.py` | Builds nets and runs four ERC-like checks. Counting only pins sitting on wires loses more than half the nets — this handles **pin-to-pin, pin-to-power-port, and hidden pins** |
-| `audit_footprints.py` | Extracts footprint links from the schematic and reconciles them against real libraries. Catches "component with no footprint" before you move to PCB |
-
-#### `altium-pcb-placement/scripts/`
-
-| Script | What it does |
-|---|---|
-| `measure_from_lib.py` | Measures footprints from the schematic plus library folders, **with no PcbDoc**. You do not have to run Update PCB first |
-| `connectivity_matrix.py` | Component-pair connection matrix plus per-pin partners for a reference part. Placement rationale is "who connects to whom, over how many nets". High-fanout power rails carry no information, so they are excluded |
-| `pin_side_map.py` | Maps pin number to package side and **scores all four rotations**. For QFN/QFP the pin number determines the side, so this is computed, not a matter of taste |
-| `connector_facing.py` | Determines which way a connector opening faces. The cable side has no pads, only housing — so it measures the **pad bbox and the silkscreen bbox separately, and the side where silk protrudes further is the opening**. No datasheet needed |
-| `plan_svg.py` | Placement plan JSON to **1:1 scale** SVG/PNG. A not-to-scale sketch produces "looks like it fits", and that is always wrong |
-| `plan_to_placements.py` | Plan JSON to `place_components` input (mils). The plan is mm, lower-left origin, **bbox**; Altium is mils and **component origin**. These are not the same thing |
-| `overlap_check.py` | Post-placement bbox intersection and out-of-board check |
-| `apply_outline.py` | Inserts the board outline (rounded corners) and symmetric mounting holes. Writes a `.bak` first when editing in place |
-
-Example — deciding connector rotation:
-
-```
-$ python connector_facing.py board.PcbDoc --libs C:\libs
-
-des   opening  protrude_mm   top  bottom  left  right
-J1    -Y       9.06          180  0       270   90
-```
-
-Read it as: to put this connector on the top edge, rotate it 180°.
-No datasheet lookup required.
-
-### Reference documents (`references/`)
-
-Most of what was expensive to learn lives here — roughly 1,400 lines of
-**"this is how it breaks, and this is how you notice"**.
-
-| File | What it saves you from |
-|---|---|
-| `altium-library/references/altium-monkey-api.md` | Unit convention (mils in, 10-mil out), pin names hidden by z-order, parameters landing at the wrong coordinates |
-| `altium-library/references/tool-traps.md` | Where `altium-mcp` / `eda-agent` misbehave, and what the wrong answer looks like |
-| `altium-library/references/drawing-measurement.md` | Vendor drawing glyphs are vector outlines. Eyeballing rendered pixels was wrong three times out of three |
-| `altium-schematic-review/references/pin-verdict.md` | Deciding whether a floating pin is a real defect |
-| `altium-schematic-review/references/altium-script-traps.md` | `run_altium_script` stalling in the debugger and blocking every MCP tool |
-| `altium-schematic-review/references/net-build-notes.md` | Why a geometric netlist disagrees with the Altium compiler |
-| `altium-pcb-placement/references/rotation-decision.md` | Deriving IC rotation from pin-to-side mapping; connector opening direction |
-| `altium-pcb-placement/references/board-sizing.md` | Board size derivation, mounting hole symmetry, corner rounding |
-| `altium-pcb-placement/references/injection.md` | Component origin is not bbox center; the authoring builder swallowing direct edits |
-| `altium-pcb-placement/references/plan-schema.md` | The `plan.json` format. A working example is in `examples/` |
-
----
 
 ## Install
 
@@ -122,7 +50,7 @@ Into `~/.claude/skills/`. Unlike symlinks, junctions need no admin rights, and
 sync clients see them as ordinary folders.
 
 ```powershell
-$repo = "C:\tools\altium-claude-skills"
+$repo = "C:\tools\altium-claude-skills"      # wherever you cloned in step 1
 foreach ($s in 'altium-library','altium-pcb-placement','altium-schematic-review') {
     New-Item -ItemType Junction -Path "$env:USERPROFILE\.claude\skills\$s" -Target "$repo\$s"
 }
@@ -262,6 +190,12 @@ touching the PcbDoc.
 | Schematic review | A saved `.SchDoc` | Findings split into **act / benign / unverified**, each with a datasheet citation |
 | PCB placement | Constraints (which edge a big connector takes, mechanical limits) | A 1:1 plan drawing, then real coordinates once you approve |
 
+A plan drawing looks like this. The image below is
+`altium-pcb-placement/examples/plan.example.json` rendered with `plan_svg.py` —
+you can run it yourself.
+
+![placement plan example](altium-pcb-placement/examples/plan.example.png)
+
 Placement actually proceeds like this:
 
 ```
@@ -285,6 +219,87 @@ intent, and encoding that as a rule costs more than it saves.
   disk. If Altium holds unsaved edits, you get answers about an old version
 - **Nothing is injected until you approve.** Redrawing the plan is cheap and
   editing the PcbDoc is not. **2-4 rounds** on the drawing is normal
+
+---
+
+## What is actually in here
+
+Each skill is `SKILL.md` (the procedure) + `references/` (trap detail) +
+`scripts/` (runnable tools).
+
+### The 15 scripts
+
+**All of them run without Altium**, because they parse the files with
+`altium_monkey`. Claude calls them for you, but you can run them yourself —
+they all take `--help`.
+
+#### `altium-library/scripts/`
+
+| Script | What it does |
+|---|---|
+| `survey_library.py` | **Run this before authoring anything.** Surveys what the library already holds. Having the symbol but not the footprint is common; author it blindly and you get a duplicate that nobody can later tell apart. Also searches by manufacturer abbreviation and pin count |
+| `measure_drawing.py` | Measures hole coordinates and outlines from a vendor 2D drawing PDF **as vectors**. Drawing glyphs are vector outlines, so text extraction fails and eyeballing rendered pixels is wrong. It **back-solves the pt/mm scale from a pitch you already know** |
+| `fit_symbol_body.py` | Computes the minimum symbol body size by exhaustive overlap test. Top and bottom pin names come in rotated 90°, so a small body makes names collide — and **neither coordinate arithmetic nor an SVG render catches it** |
+| `diff_symbol.py` | Compares a reference symbol against yours in **three layers** — parsed properties, record order (z-order), raw bytes. Comparing properties alone reported "identical" while the Altium canvas looked nothing alike |
+
+#### `altium-schematic-review/scripts/`
+
+| Script | What it does |
+|---|---|
+| `check_context.py` | **Precondition check.** Stops wasted work before review starts. The most common accident is reading the on-disk file while Altium holds unsaved edits, then concluding things like "there is no power section" |
+| `net_erc.py` | Builds nets and runs four ERC-like checks. Counting only pins sitting on wires loses more than half the nets — this handles **pin-to-pin, pin-to-power-port, and hidden pins** |
+| `audit_footprints.py` | Extracts footprint links from the schematic and reconciles them against real libraries. Catches "component with no footprint" before you move to PCB |
+
+#### `altium-pcb-placement/scripts/`
+
+| Script | What it does |
+|---|---|
+| `measure_from_lib.py` | Measures footprints from the schematic plus library folders, **with no PcbDoc**. You do not have to run Update PCB first |
+| `connectivity_matrix.py` | Component-pair connection matrix plus per-pin partners for a reference part. Placement rationale is "who connects to whom, over how many nets". High-fanout power rails carry no information, so they are excluded |
+| `pin_side_map.py` | Maps pin number to package side and **scores all four rotations**. For QFN/QFP the pin number determines the side, so this is computed, not a matter of taste |
+| `connector_facing.py` | Determines which way a connector opening faces. The cable side has no pads, only housing — so it measures the **pad bbox and the silkscreen bbox separately, and the side where silk protrudes further is the opening**. No datasheet needed |
+| `plan_svg.py` | Placement plan JSON to **1:1 scale** SVG/PNG. A not-to-scale sketch produces "looks like it fits", and that is always wrong |
+| `plan_to_placements.py` | Plan JSON to `place_components` input (mils). The plan is mm, lower-left origin, **bbox**; Altium is mils and **component origin**. These are not the same thing |
+| `overlap_check.py` | Post-placement bbox intersection and out-of-board check |
+| `apply_outline.py` | Inserts the board outline (rounded corners) and symmetric mounting holes. Writes a `.bak` first when editing in place |
+
+Example — deciding connector rotation. `python` below is the venv `python.exe`
+from [install step 2](#2-python-312-venv), called by full path.
+The script prints its column headers in Korean.
+
+```
+> python connector_facing.py board.SchDoc --libs C:\libs
+
+des  개구부 돌출 mm     상변  하변  좌변  우변   풋프린트
+J1   -Y       9.06      180    0   270    90   RJ45_J1B1211CCD
+J2   -Y       2.21      180    0   270    90   USB-C_16P
+
+숫자 = 그 변에 놓을 때 줘야 할 rotation (반시계 도).
+```
+```
+des  opening  protrude mm   top  bottom  left  right   footprint
+```
+
+Read it as: to put J1 on the top edge, rotate it 180°.
+No datasheet lookup required.
+
+### Reference documents (`references/`)
+
+Most of what was expensive to learn lives here — roughly 1,400 lines of
+**"this is how it breaks, and this is how you notice"**.
+
+| File | What it saves you from |
+|---|---|
+| `altium-library/references/altium-monkey-api.md` | Unit convention (mils in, 10-mil out), pin names hidden by z-order, parameters landing at the wrong coordinates |
+| `altium-library/references/tool-traps.md` | Where `altium-mcp` / `eda-agent` misbehave, and what the wrong answer looks like |
+| `altium-library/references/drawing-measurement.md` | Vendor drawing glyphs are vector outlines. Eyeballing rendered pixels was wrong three times out of three |
+| `altium-schematic-review/references/pin-verdict.md` | Deciding whether a floating pin is a real defect |
+| `altium-schematic-review/references/altium-script-traps.md` | `run_altium_script` stalling in the debugger and blocking every MCP tool |
+| `altium-schematic-review/references/net-build-notes.md` | Why a geometric netlist disagrees with the Altium compiler |
+| `altium-pcb-placement/references/rotation-decision.md` | Deriving IC rotation from pin-to-side mapping; connector opening direction |
+| `altium-pcb-placement/references/board-sizing.md` | Board size derivation, mounting hole symmetry, corner rounding |
+| `altium-pcb-placement/references/injection.md` | Component origin is not bbox center; the authoring builder swallowing direct edits |
+| `altium-pcb-placement/references/plan-schema.md` | The `plan.json` format. A working example is in `examples/` |
 
 ---
 

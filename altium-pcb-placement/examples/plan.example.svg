@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="540" viewBox="0 0 1080 540"><rect width="1080" height="540" fill="#fff"/>
+<rect x="60.0" y="60.0" width="560.0" height="112.0" fill="#ffe8cc" opacity="0.55"/>
+<text x="74.0" y="167.8" font-size="12" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#777" font-weight="bold">커넥터 / 전원</text>
+<rect x="186.0" y="193.0" width="196.0" height="245.0" fill="#e6ffe6" opacity="0.55"/>
+<text x="193.0" y="435.2" font-size="12" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#777" font-weight="bold">MCU + 테스트포인트</text>
+<rect x="60.0" y="60.0" width="560.0" height="420.0" fill="none" stroke="#000" stroke-width="2.5"/>
+<line x1="60.0" y1="480.0" x2="60.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="130.0" y1="480.0" x2="130.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="200.0" y1="480.0" x2="200.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="270.0" y1="480.0" x2="270.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="340.0" y1="480.0" x2="340.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="410.0" y1="480.0" x2="410.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="480.0" y1="480.0" x2="480.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="550.0" y1="480.0" x2="550.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="620.0" y1="480.0" x2="620.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="480.0" x2="620.0" y2="480.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="410.0" x2="620.0" y2="410.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="340.0" x2="620.0" y2="340.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="270.0" x2="620.0" y2="270.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="200.0" x2="620.0" y2="200.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="130.0" x2="620.0" y2="130.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="60.0" y1="60.0" x2="620.0" y2="60.0" stroke="#ddd" stroke-width="0.5"/>
+<line x1="354.0" y1="298.0" x2="424.0" y2="200.0" stroke="#c00" stroke-width="2" stroke-dasharray="6 4" opacity="0.75"/>
+<text x="389.0" y="245.0" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#c00" font-weight="bold">MDI</text>
+<line x1="228.0" y1="119.5" x2="193.0" y2="102.0" stroke="#c00" stroke-width="2" stroke-dasharray="6 4" opacity="0.75"/>
+<text x="210.5" y="106.8" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#c00" font-weight="bold">5V</text>
+<circle cx="228.0" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="243.4" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="258.8" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="274.2" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="289.6" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="305.0" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="320.4" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="335.8" cy="399.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<text x="281.9" y="415.5" font-size="8.5" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#0066b3" font-weight="bold">하단 x8 span 15</text>
+<circle cx="228.0" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="243.4" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="258.8" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="274.2" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="289.6" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="305.0" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="320.4" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<circle cx="335.8" cy="224.5" r="3.6" fill="#fff" stroke="#0066b3" stroke-width="1.5"/>
+<text x="281.9" y="213.5" font-size="8.5" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#0066b3" font-weight="bold">상단 x8 span 15</text>
+<rect x="116.0" y="60.0" width="74.9" height="56.0" fill="#fffbe6" stroke="#333" stroke-width="1.6"/>
+<text x="153.4" y="86.5" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">J1</text>
+<text x="153.4" y="98.0" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">USB-C</text>
+<rect x="228.0" y="92.9" width="61.6" height="51.1" fill="#fffbe6" stroke="#333" stroke-width="1.6"/>
+<text x="258.8" y="111.5" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">U1</text>
+<text x="258.8" y="123.0" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">LDO</text>
+<text x="258.8" y="134.5" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">SOT-223</text>
+<rect x="424.0" y="60.0" width="124.6" height="150.5" fill="#fffbe6" stroke="#333" stroke-width="1.6"/>
+<text x="486.3" y="133.8" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">J2</text>
+<text x="486.3" y="145.2" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">RJ45</text>
+<rect x="410.0" y="60.0" width="152.6" height="164.5" fill="none" stroke="#e08000" stroke-width="1.6" stroke-dasharray="8 5"/>
+<text x="558.6" y="73.0" font-size="9" font-family="Malgun Gothic,Arial" text-anchor="end" fill="#e08000" font-weight="normal">커넥터 결합 여유</text>
+<rect x="214.0" y="242.0" width="140.0" height="140.0" fill="#fffbe6" stroke="#333" stroke-width="1.6"/>
+<text x="284.0" y="299.5" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">U2</text>
+<text x="284.0" y="311.0" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">MCU</text>
+<text x="284.0" y="322.5" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">QFP144 20x20</text>
+<text x="284.0" y="334.0" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">회전 270°</text>
+<rect x="396.0" y="302.2" width="25.2" height="23.8" fill="#fffbe6" stroke="#333" stroke-width="1.6"/>
+<text x="408.6" y="333.6" font-size="8" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#222" font-weight="normal">Y1</text>
+<text x="408.6" y="342.8" font-size="8" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#222" font-weight="normal">25M</text>
+<rect x="102.0" y="402.3" width="68.6" height="42.7" fill="#fffbe6" stroke="#333" stroke-width="1.6"/>
+<text x="136.3" y="422.2" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">SW1</text>
+<text x="136.3" y="433.7" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#111" font-weight="bold">RESET</text>
+<text x="284.0" y="254.6" font-size="8.5" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#0a7" font-weight="normal">P109→P144</text>
+<text x="340.0" y="312.0" font-size="8.5" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#0a7" font-weight="normal" transform="rotate(90 340.0 312.0)">P73→P108</text>
+<text x="284.0" y="375.0" font-size="8.5" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#0a7" font-weight="normal">P1→P36</text>
+<text x="229.4" y="312.0" font-size="8.5" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#0a7" font-weight="normal" transform="rotate(-90 229.4 312.0)">P37→P72</text>
+<circle cx="225.2" cy="370.8" r="6" fill="#c00"/>
+<text x="207.2" y="388.8" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#c00" font-weight="bold">P1</text>
+<circle cx="81.0" cy="459.0" r="11.2" fill="none" stroke="#555" stroke-width="1.4"/>
+<circle cx="81.0" cy="459.0" r="21.0" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="599.0" cy="459.0" r="11.2" fill="none" stroke="#555" stroke-width="1.4"/>
+<circle cx="599.0" cy="459.0" r="21.0" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="599.0" cy="81.0" r="11.2" fill="none" stroke="#555" stroke-width="1.4"/>
+<circle cx="599.0" cy="81.0" r="21.0" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="3 3"/>
+<circle cx="81.0" cy="81.0" r="11.2" fill="none" stroke="#555" stroke-width="1.4"/>
+<circle cx="81.0" cy="81.0" r="21.0" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="3 3"/>
+<line x1="60.0" y1="506.0" x2="620.0" y2="506.0" stroke="#000" stroke-width="1"/>
+<text x="340.0" y="522.0" font-size="13" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#000" font-weight="bold">80 mm</text>
+<text x="28.0" y="270.0" font-size="13" font-family="Malgun Gothic,Arial" text-anchor="middle" fill="#000" font-weight="bold" transform="rotate(-90 28.0 270.0)">60 mm</text>
+<text x="60.0" y="26.0" font-size="16" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#000" font-weight="bold">예제 보드 — 배치 가안  (Top View, 1:1)</text>
+<text x="60.0" y="44.0" font-size="10" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#666" font-weight="normal">빨강 점선 = 주요 신호 흐름 / 주황 = 금지구역 / 파랑 원 = 테스트포인트</text>
+<text x="638.0" y="70.0" font-size="13" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#000" font-weight="bold">NOTE</text>
+<text x="638.0" y="92.0" font-size="11" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#333" font-weight="normal">· 보드 80 x 60 / 4층</text>
+<text x="638.0" y="114.0" font-size="11" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#333" font-weight="normal">· 축척 1:1 — 눈대중 그림은 「들어갈 것 같다」를 만든다</text>
+<text x="638.0" y="136.0" font-size="11" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#333" font-weight="normal">· 고정홀은 변에서 3mm, x·y 각각 두 값 (대칭)</text>
+<text x="638.0" y="158.0" font-size="11" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#c00" font-weight="normal">· 커넥터 rot 180 — 개구부가 보드 밖을 향해야 한다</text>
+<text x="638.0" y="180.0" font-size="11" font-family="Malgun Gothic,Arial" text-anchor="start" fill="#333" font-weight="normal">· 치수는 전부 라이브러리 실측으로 바꿔 넣을 것</text>
+</svg>
