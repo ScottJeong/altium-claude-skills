@@ -48,6 +48,42 @@ def bbox(d, i, pads_only):
     return min(xs), min(ys), max(xs), max(ys)
 
 
+def side(c):
+    """부품이 놓인 면. 'top' / 'bottom'."""
+    try:
+        return str(c.get_layer_normalized()).lower()
+    except Exception:
+        return str(getattr(c, 'layer', '')).lower()
+
+
+def tht_boxes(d, i):
+    """관통홀 패드 **하나씩**의 bbox 목록. 홀은 판을 뚫으므로 반대면과도 부딪친다.
+
+    이게 없으면 반대면 판정이 '층이 다르니 무조건 안전' 이 되어,
+    THT 핀 위에 반대면 부품을 올려놓는 것을 못 잡는다.
+
+    합쳐서 하나의 bbox 로 만들면 안 된다 — 네 모서리에 기구홀이 있는 소켓은
+    합친 bbox 가 몸체 전체가 되어 그 아래 전부를 오탐으로 잡는다.
+    """
+    out = []
+    for p in d.get_component_primitives(i)['pads']:
+        if not getattr(p, 'hole_size', 0):
+            continue
+        w, h = p.width / IU, p.height / IU
+        out.append((p.x_mils - w / 2, p.y_mils - h / 2,
+                    p.x_mils + w / 2, p.y_mils + h / 2))
+    return out
+
+
+def _cross(b1, b2, g):
+    """두 bbox 의 x·y 겹침량. 둘 다 양수면 교차."""
+    if b1 is None or b2 is None:
+        return None
+    ox = min(b1[2], b2[2]) - max(b1[0], b2[0]) + g
+    oy = min(b1[3], b2[3]) - max(b1[1], b2[1]) + g
+    return (ox, oy) if ox > 0 and oy > 0 else None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('pcbdoc')
@@ -63,27 +99,50 @@ def main():
     for i, c in enumerate(d.components):
         b = bbox(d, i, a.pads_only)
         if b:
-            boxes.append((c.source_designator, b))
+            boxes.append((c.source_designator, b, side(c), tht_boxes(d, i)))
+    n_bot = sum(1 for x in boxes if 'bottom' in x[2])
     print(f'부품 {len(d.components)} / bbox 산출 {len(boxes)}'
+          f'  (top {len(boxes) - n_bot} / bottom {n_bot})'
           f'  ({"패드만" if a.pads_only else "패드+실크"}, 요구간격 {a.gap:g}mm)')
 
     g = a.gap * MIL
-    hits = []
+    hits, cross = [], []
     for i in range(len(boxes)):
-        n1, (a1, b1, c1, d1) = boxes[i]
+        n1, b1, s1, t1 = boxes[i]
         for j in range(i + 1, len(boxes)):
-            n2, (a2, b2, c2, d2) = boxes[j]
-            ox = min(c1, c2) - max(a1, a2) + g
-            oy = min(d1, d2) - max(b1, b2) + g
-            if ox > 0 and oy > 0:
-                hits.append((min(ox, oy) / MIL, n1, n2, ox / MIL, oy / MIL))
+            n2, b2, s2, t2 = boxes[j]
+            if s1 == s2:
+                ov = _cross(b1, b2, g)
+                if ov:
+                    hits.append((min(ov) / MIL, n1, n2, ov[0] / MIL, ov[1] / MIL, s1))
+                continue
+            # 반대면 — 관통홀 하나라도 상대 영역을 침범할 때만 충돌이다
+            worst = None
+            for tbs, other, owner in ((t1, b2, n1), (t2, b1, n2)):
+                for tb in tbs:
+                    ov = _cross(tb, other, g)
+                    if ov and (worst is None or min(ov) > worst[0]):
+                        worst = (min(ov), ov[0], ov[1], owner)
+            if worst:
+                cross.append((worst[0] / MIL, n1, n2,
+                              worst[1] / MIL, worst[2] / MIL, worst[3]))
     hits.sort(reverse=True)
+    cross.sort(reverse=True)
 
-    print(f'\n=== 겹치는 쌍 {len(hits)}')
-    for depth, n1, n2, ox, oy in hits[:60]:
-        print(f'  {n1:<6} ↔ {n2:<6}  겹침 x {ox:5.2f}  y {oy:5.2f} mm')
+    print(f'\n=== 같은 면 겹침 {len(hits)}')
+    for _, n1, n2, ox, oy, s in hits[:60]:
+        print(f'  {n1:<6} ↔ {n2:<6} [{s:6}]  겹침 x {ox:5.2f}  y {oy:5.2f} mm')
     if len(hits) > 60:
         print(f'  ... 외 {len(hits) - 60}쌍')
+
+    print(f'\n=== 반대면 관통홀 충돌 {len(cross)}')
+    for _, n1, n2, ox, oy, owner in cross[:30]:
+        print(f'  {n1:<6} ↔ {n2:<6}  {owner} 의 관통홀이 침범  x {ox:5.2f}  y {oy:5.2f} mm')
+    if len(cross) > 30:
+        print(f'  ... 외 {len(cross) - 30}쌍')
+    if not cross:
+        print('  없음. 반대면끼리 XY 가 겹치는 것은 정상이다 '
+              '(bottom 디커플링이 그렇게 놓인다)')
 
     # 보드 밖
     br = d.board_regions[0]
@@ -91,13 +150,25 @@ def main():
     bx0, by0 = min(v[0] for v in vs), min(v[1] for v in vs)
     bx1, by1 = max(v[0] for v in vs), max(v[1] for v in vs)
     print(f'\n=== 보드 외곽 {bx0/MIL:.1f},{by0/MIL:.1f} ~ {bx1/MIL:.1f},{by1/MIL:.1f} mm')
-    out = []
-    for n, (a1, b1, c1, d1) in boxes:
-        if a1 < bx0 - 1 or b1 < by0 - 1 or c1 > bx1 + 1 or d1 > by1 + 1:
-            out.append((n, a1 / MIL, b1 / MIL, c1 / MIL, d1 / MIL))
-    print(f'외곽 밖으로 나간 부품 {len(out)}')
-    for n, x0, y0, x1, y1 in out:
-        print(f'  {n:<6} x {x0:7.2f}..{x1:7.2f}   y {y0:7.2f}..{y1:7.2f}')
+
+    def outside(b):
+        return b[0] < bx0 - 1 or b[1] < by0 - 1 or b[2] > bx1 + 1 or b[3] > by1 + 1
+
+    hard, soft = [], []
+    for i, c in enumerate(d.components):
+        bp = bbox(d, i, True)          # 패드만
+        bf = bbox(d, i, False)         # 패드 + 실크
+        if bp and outside(bp):
+            hard.append((c.source_designator, bp))
+        elif bf and outside(bf):
+            soft.append((c.source_designator, bf))
+
+    print(f'패드가 보드 밖 {len(hard)}  ← 제조 불가. 반드시 고친다')
+    for n, b in hard:
+        print(f'  {n:<6} x {b[0]/MIL:7.2f}..{b[2]/MIL:7.2f}   y {b[1]/MIL:7.2f}..{b[3]/MIL:7.2f}')
+    print(f'실크·하우징만 보드 밖 {len(soft)}  ← 엣지 커넥터면 정상. 눈으로 확인')
+    for n, b in soft:
+        print(f'  {n:<6} x {b[0]/MIL:7.2f}..{b[2]/MIL:7.2f}   y {b[1]/MIL:7.2f}..{b[3]/MIL:7.2f}')
 
 
 if __name__ == '__main__':

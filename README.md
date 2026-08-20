@@ -260,7 +260,7 @@ they all take `--help`.
 | `connector_facing.py` | Determines which way a connector opening faces. The cable side has no pads, only housing — so it measures the **pad bbox and the silkscreen bbox separately, and the side where silk protrudes further is the opening**. No datasheet needed |
 | `plan_svg.py` | Placement plan JSON to **1:1 scale** SVG/PNG. A not-to-scale sketch produces "looks like it fits", and that is always wrong |
 | `plan_to_placements.py` | Plan JSON to `place_components` input (mils). The plan is mm, lower-left origin, **bbox**; Altium is mils and **component origin**. These are not the same thing |
-| `overlap_check.py` | Post-placement bbox intersection and out-of-board check |
+| `overlap_check.py` | Post-placement collision check. **Layer-aware** — opposite-side parts sharing XY is normal (that is where decoupling goes). Through-holes are the exception since they pierce the board, and they are compared **one hole at a time** (merging them makes a socket with four corner mounting holes flag everything beneath it). Pads-outside and silk-outside are reported separately |
 | `apply_outline.py` | Inserts the board outline (rounded corners) and symmetric mounting holes. Writes a `.bak` first when editing in place |
 
 Example — deciding connector rotation. `python` below is the venv `python.exe`
