@@ -82,7 +82,29 @@ def prim_bbox(p):
     return None
 
 
-def pad_bbox(pd):
+def shape_by_padindex(fp):
+    """PADINDEX(프리미티브 1-based) → region. custom_shape.region 은 첫 개만 주므로 못 쓴다."""
+    out = {}
+    for p in fp.primitives:
+        idx = (getattr(p, 'properties', None) or {}).get('PADINDEX')
+        if idx and getattr(p, 'outline_vertices', None):
+            try:
+                out[int(idx)] = p
+            except ValueError:
+                pass
+    return out
+
+
+def pad_bbox(pd, fp=None, prim_index=None, shapes=None):
+    """커스텀 패드는 앵커가 아니라 **실제 형상**을 재야 한다.
+
+    앵커(width/height)는 0.2mm 짜리 점일 수 있는데 실제 구리는 그보다 훨씬 크다.
+    앵커로 재면 멀쩡한 패드를 '덮였다' 고 오판한다.
+    """
+    if shapes and prim_index is not None:
+        r = shapes.get(prim_index + 1)          # PADINDEX 는 1-based
+        if r is not None:
+            return _bbox_pts([(v.x_mils * MIL, v.y_mils * MIL) for v in r.outline_vertices])
     w, h = pd.width / IU * MIL, pd.height / IU * MIL
     x, y = pd.x_mils * MIL, pd.y_mils * MIL
     return x - w / 2, y - h / 2, x + w / 2, y + h / 2
@@ -104,11 +126,12 @@ def audit(path, only=None):
         if not cu:
             continue
         boxes = [(p, prim_bbox(p)) for p in cu]
+        shapes = shape_by_padindex(fp)
         buried = []
-        for pd in fp.pads:
-            if pd.layer not in COPPER:
+        for i, pd in enumerate(fp.primitives):
+            if not type(pd).__name__.endswith('Pad') or pd.layer not in COPPER:
                 continue
-            pb = pad_bbox(pd)
+            pb = pad_bbox(pd, fp, i, shapes)
             for p, b in boxes:
                 if b and covers(b, pb):
                     buried.append((pd.designator, type(p).__name__.replace('AltiumPcb', '')))
