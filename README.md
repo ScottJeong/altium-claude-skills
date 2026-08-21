@@ -227,7 +227,7 @@ intent, and encoding that as a rule costs more than it saves.
 Each skill is `SKILL.md` (the procedure) + `references/` (trap detail) +
 `scripts/` (runnable tools).
 
-### The 15 scripts
+### The 16 scripts
 
 **All of them run without Altium**, because they parse the files with
 `altium_monkey`. Claude calls them for you, but you can run them yourself —
@@ -240,6 +240,7 @@ they all take `--help`.
 | `survey_library.py` | **Run this before authoring anything.** Surveys what the library already holds. Having the symbol but not the footprint is common; author it blindly and you get a duplicate that nobody can later tell apart. Also searches by manufacturer abbreviation and pin count |
 | `measure_drawing.py` | Measures hole coordinates and outlines from a vendor 2D drawing PDF **as vectors**. Drawing glyphs are vector outlines, so text extraction fails and eyeballing rendered pixels is wrong. It **back-solves the pt/mm scale from a pitch you already know** |
 | `fit_symbol_body.py` | Computes the minimum symbol body size by exhaustive overlap test. Top and bottom pin names come in rotated 90°, so a small body makes names collide — and **neither coordinate arithmetic nor an SVG render catches it** |
+| `audit_free_copper.py` | Finds **free primitives on copper layers** in a footprint. Regions, arcs and tracks carry no net, so a trace cannot enter a pad buried under them — and the symptom reads as a direction problem ("routing out of the pad works, into it does not"). Reports whether a pad is actually covered |
 | `diff_symbol.py` | Compares a reference symbol against yours in **three layers** — parsed properties, record order (z-order), raw bytes. Comparing properties alone reported "identical" while the Altium canvas looked nothing alike |
 
 #### `altium-schematic-review/scripts/`

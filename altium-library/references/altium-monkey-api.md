@@ -101,6 +101,71 @@ lib.save(path)
 관례상 `MECHANICAL_1` = 보드 엣지/조립 표시, `MECHANICAL_15` = 코트야드로 쓴다
 (프로젝트마다 다르니 기존 풋프린트를 보고 맞출 것).
 
+### [함정] 커스텀 패드를 새로 만들지 마라
+
+`add_custom_pad()` 로 만든 패드는 **Altium 이 못 읽는다.** 라이브러리를 열 때 이렇게 죽는다.
+
+```
+The following exception occurred whilst loading section <풋프린트명>
+Access violation at address ... in module 'ADVPCB.DLL'. Read of address FFFFFFFFFFFFFFFF
+```
+
+원인은 레코드 길이다. 같은 파일 안에서 잰 값이다.
+
+```
+Altium 이 쓴 패드 레코드      235 ~ 241 B
+altium_monkey 가 쓴 것        152 B
+```
+
+뒤쪽 필드가 빠져 있고, **단순 패드는 Altium 이 넘어가 주지만 커스텀 패드는 그 뒤를
+읽다가 죽는다.** 꼭짓점 수와 무관하다 — 8점짜리도 같이 죽는다.
+
+**되는 것: 이미 있는 커스텀 패드의 형상만 바꾸기.**
+사람이 Altium 에서 패드 Shape 를 한 번 Custom 으로 만들어 저장하면, 그 뒤로는 형상
+region 만 코드로 갈아끼울 수 있다. 패드 레코드를 안 건드리므로 안전하다.
+바꾸기 전후로 `pad.serialize_to_binary()` 가 **바이트 동일**한지 확인하면 된다.
+
+### [함정] region 은 두 종류다 — 좌표만 고치면 안 바뀐다
+
+`ISSHAPEBASED` 가 갈림길이다.
+
+| 값 | Altium 이 읽는 것 |
+|---|---|
+| `FALSE` | `outline_vertices` 꼭짓점 목록 |
+| `TRUE` | `MAINCONTOURVERTEXCOUNT` + `KIND*/VX*/VY*/CX*/CY*/SA*/EA*/R*` 필드 |
+
+shape-based 인데 꼭짓점만 갈아끼우면 **화면이 하나도 안 바뀐다.** Altium 은 여전히
+`KIND*` 필드(원·선분 조각)를 그린다.
+
+**진단**: `MAINCONTOURVERTEXCOUNT` 가 실제 꼭짓점 수와 다르면 이 경우다.
+
+**해결**: 꼭짓점 목록을 쓰려면 shape-based 를 끈다.
+
+```python
+import re
+DROP = re.compile(r'^(MAINCONTOURVERTEXCOUNT|KIND\d+|VX\d+|VY\d+|CX\d+|CY\d+|SA\d+|EA\d+|R\d+)$')
+for k in [k for k in r.properties if DROP.match(k)]:
+    del r.properties[k]
+r.properties['ISSHAPEBASED'] = 'FALSE'
+r.is_shapebased = False
+r.outline_vertex_count = len(r.outline_vertices)
+r._raw_binary = None          # 안 지우면 옛 바이트가 그대로 나간다
+```
+
+### [함정] `custom_shape.region` 은 첫 region 만 돌려준다
+
+패드가 둘 이상이면 **모든 패드가 같은 region 을 가리킨다.**
+
+짝은 region 쪽 `PADINDEX` 가 정한다 — **프리미티브 목록의 1-based 인덱스**다.
+
+```
+primitives: [0] Arc  [1] Pad(des=2)  [2] Pad(des=1)  [3] Region  [4] Region
+region.PADINDEX = 2  →  primitives[1] = Pad des=2
+region.PADINDEX = 3  →  primitives[2] = Pad des=1
+```
+
+`PADINDEX` 로 짝짓거나, 패드 중심을 품는 region 으로 직접 맞춘다.
+
 ## SchLib
 
 ```python
