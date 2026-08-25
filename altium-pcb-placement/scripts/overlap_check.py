@@ -29,13 +29,32 @@ MIL = 39.3700787402
 IU = 10000.0
 
 
+def pad_extent(p):
+    """패드 하나의 (x0, y0, x1, y1) — 단위 mil.
+
+    커스텀 형상 패드는 width/height 가 **앵커**라 실제 구리와 무관하다.
+    실측 예: 앵커 0.025mm, 실제 구리 1.126 x 1.012mm — 45배 차이.
+    앵커로 재면 큰 패드를 점으로 보고 충돌을 통째로 놓친다.
+    """
+    cs = getattr(p, 'custom_shape', None)
+    if cs is not None:
+        r = getattr(cs, 'region', None)
+        v = getattr(r, 'outline_vertices', None) if r is not None else None
+        if v:
+            xs = [q.x_mils for q in v]
+            ys = [q.y_mils for q in v]
+            return min(xs), min(ys), max(xs), max(ys)
+    w, h = p.width / IU, p.height / IU
+    return p.x_mils - w / 2, p.y_mils - h / 2, p.x_mils + w / 2, p.y_mils + h / 2
+
+
 def bbox(d, i, pads_only):
     pr = d.get_component_primitives(i)
     xs, ys = [], []
     for p in pr['pads']:
-        w, h = p.width / IU, p.height / IU
-        xs += [p.x_mils - w / 2, p.x_mils + w / 2]
-        ys += [p.y_mils - h / 2, p.y_mils + h / 2]
+        x0, y0, x1, y1 = pad_extent(p)
+        xs += [x0, x1]
+        ys += [y0, y1]
     if not pads_only:
         for t in pr['tracks']:
             hw = t.width_mils / 2
@@ -69,9 +88,7 @@ def tht_boxes(d, i):
     for p in d.get_component_primitives(i)['pads']:
         if not getattr(p, 'hole_size', 0):
             continue
-        w, h = p.width / IU, p.height / IU
-        out.append((p.x_mils - w / 2, p.y_mils - h / 2,
-                    p.x_mils + w / 2, p.y_mils + h / 2))
+        out.append(pad_extent(p))
     return out
 
 
