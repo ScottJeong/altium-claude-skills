@@ -214,7 +214,7 @@ Claude 가 `description` 을 보고 맞는 스킬을 고른다.
 
 스킬마다 `SKILL.md`(절차) + `references/`(함정 상세) + `scripts/`(실행 도구) 다.
 
-### 스크립트 16개
+### 스크립트 17개
 
 **전부 Altium 없이 돈다.** 파일을 `altium_monkey` 로 직접 파싱하기 때문이다.
 Claude 가 알아서 부르지만 직접 돌려도 되고, 전부 `--help` 가 있다.
@@ -228,6 +228,7 @@ Claude 가 알아서 부르지만 직접 돌려도 되고, 전부 `--help` 가 �
 | `fit_symbol_body.py` | 심볼 본체 최소 크기를 겹침 전수검사로 계산. 상/하 핀 이름은 90도 돌아 들어와서, 본체가 작으면 이름끼리 겹치는데 **좌표 검산으로도 SVG 렌더로도 안 잡힌다** |
 | `audit_free_copper.py` | 풋프린트 구리층의 **자유 프리미티브**를 찾는다. region·arc·track 은 넷이 없어서 배선이 못 들어오는데, 증상이 「패드에서 나가는 건 되고 들어오는 건 안 된다」로 나타나 방향 문제로 오인하기 쉽다. 패드가 그 구리에 덮였는지까지 보고 배선 불가/주의로 가른다 |
 | `diff_symbol.py` | 기준 심볼과 내가 만든 것을 **3층**으로 비교 — 파싱된 속성 / 레코드 순서(z-order) / 원시 바이트. 속성만 비교하면 "일치" 인데 화면은 딴판인 경우가 실제로 있었다 |
+| `altium_monkey_metric_pins.py` | `altium_monkey` 버그 패치(import 만 하면 걸린다). **메트릭 격자 핀**(5mm = 196.85mil 등)이 읽기·쓰기 모두 10mil 로 깎인다 — 읽을 때 `PinFrac` 스트림을 무시하고, 쓸 때 Altium 이 못 알아보는 키로 쓴다. SchLib 을 다루기 전에 import. CLI 는 핀의 정확한 좌표를 찍는다 |
 
 #### `altium-schematic-review/scripts/`
 

@@ -228,6 +228,33 @@ Altium 은 **레코드 순서대로 그린다.** 채워진(`is_solid=True`) 사�
 `add_parameter(name, text)` 만 쓰면 전부 `(0,0)` 에 겹쳐서 심볼 위에 글자가 뭉갠다.
 보이게 할 것 하나만 좌표를 주고 나머지는 `is_hidden=True`.
 
+### [함정] 메트릭 격자 핀은 10mil 로 깎인다 — `altium_monkey_metric_pins` 를 먼저 import
+
+Altium 은 핀 위치·길이를 핀 레코드에 **10mil 단위 정수**로, 나머지를 심볼별 `PinFrac`
+스트림에 1/10000 mil 로 따로 쓴다. altium_monkey(2026.9.22 에서 확인)는 이걸 세 군데서 잃는다:
+
+| 어디서 | 무엇을 |
+|---|---|
+| `AltiumSchPin(x=, y=, length=)` | `x // 10` — 나머지를 버린다 (음수는 내림) |
+| `PinFrac` 쓰기 | 키를 ASCII 핀 순번(`"0"`)이 아니라 원시 바이트(` `)로 쓴다 → Altium 이 무시 |
+| SchLib 읽기 | `PinFrac` 을 핀에 적용하지 않는다 → **Altium 원본도 깎여 읽힌다** |
+
+5mm(196.85mil) 핀 심볼을 복사하면 `197 → 190`, `1063 → 1060` 이 된다. 좌표가 전부
+10mil 배수인 심볼은 영향이 없어서, 메트릭 격자 라이브러리에서만 드러난다.
+`save(..., sync_pin_text_data=True)` 나 `location_x_frac` 직접 지정으로는 안 고쳐진다.
+
+```python
+import altium_monkey_metric_pins  # noqa: F401  — altium_monkey 로 SchLib 을 다루기 전에
+MM = 1000.0 / 25.4
+AltiumSchPin(designator="1", name="IN", x=5 * MM, y=27 * MM, length=5 * MM, ...)
+p.x_mils, p.y_mils, p.length_mils   # 읽기도 정확한 값
+```
+
+확인은 `python scripts/altium_monkey_metric_pins.py <파일.SchLib>` 로 정확한 값을 찍는다.
+**`get_symbol_primitives` 는 mil 정수로 반올림해 보여서 이 차이를 못 본다.** Altium 기준으로
+대조하려면 `run_altium_script` 로 `Pin.Location.X/Y` · `Pin.PinLength` (내부 단위)를 읽는다.
+검증: Altium 이 쓴 13핀 메트릭 심볼을 복사 → Altium 에서 원본과 내부 단위까지 동일, 음수 좌표 포함.
+
 ## 읽기(라운드트립) API
 
 ```python

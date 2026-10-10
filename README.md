@@ -227,7 +227,7 @@ intent, and encoding that as a rule costs more than it saves.
 Each skill is `SKILL.md` (the procedure) + `references/` (trap detail) +
 `scripts/` (runnable tools).
 
-### The 16 scripts
+### The 17 scripts
 
 **All of them run without Altium**, because they parse the files with
 `altium_monkey`. Claude calls them for you, but you can run them yourself —
@@ -242,6 +242,7 @@ they all take `--help`.
 | `fit_symbol_body.py` | Computes the minimum symbol body size by exhaustive overlap test. Top and bottom pin names come in rotated 90°, so a small body makes names collide — and **neither coordinate arithmetic nor an SVG render catches it** |
 | `audit_free_copper.py` | Finds **free primitives on copper layers** in a footprint. Regions, arcs and tracks carry no net, so a trace cannot enter a pad buried under them — and the symptom reads as a direction problem ("routing out of the pad works, into it does not"). Reports whether a pad is actually covered |
 | `diff_symbol.py` | Compares a reference symbol against yours in **three layers** — parsed properties, record order (z-order), raw bytes. Comparing properties alone reported "identical" while the Altium canvas looked nothing alike |
+| `altium_monkey_metric_pins.py` | Import-time patch for an `altium_monkey` bug: schematic pins on a **metric grid** (e.g. 5 mm = 196.85 mil) are truncated to 10 mil on both read and write, because the `PinFrac` stream is ignored on load and written with keys Altium does not recognise. Import it before touching a SchLib; its CLI prints exact pin coordinates |
 
 #### `altium-schematic-review/scripts/`
 

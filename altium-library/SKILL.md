@@ -394,6 +394,10 @@ fp.add_embedded_3d_model(model, bounds_mils=(-D/2, -E/2, D/2, E/2),
 `AltiumSchPin(x=100, length=100)` → `location.x == 10`, `length_mils == 100.0`.
 기준 심볼에서 읽은 값(`x=10`)을 그대로 넣으면 **10배 작아진다.**
 
+메트릭 격자 심볼(5mm 핀 등)은 패치 없이는 핀이 **10mil 로 깎인다** — 읽을 때도 쓸 때도.
+`import altium_monkey_metric_pins` 를 먼저 하고, 정확한 값은 그 스크립트 CLI 로 확인한다
+(`references/altium-monkey-api.md` 의 메트릭 격자 함정).
+
 ### 6-2. Altium 전수 덤프 (altium-mcp)
 
 내가 쓴 걸 내가 읽는 건 검증이 아니다. **Altium 이 같게 해석하는지** 봐야 한다.
@@ -473,4 +477,5 @@ Altium 에서는 본체가 핀 이름을 덮고 있을 수 있다. z-order 판�
 | `scripts/survey_library.py` | 라이브러리에 뭐가 있는지 훑기 (§1) |
 | `scripts/diff_symbol.py` | 기준 부품과 3층 비교 (§2) |
 | `scripts/fit_symbol_body.py` | 심볼 본체 최소 크기 계산 (핀 이름 겹침 검사) (§3) |
+| `scripts/altium_monkey_metric_pins.py` | 메트릭 격자 핀이 10mil 로 깎이는 altium_monkey 버그 패치. SchLib 다루기 전에 import (§6-1) |
 | `scripts/measure_drawing.py` | PDF 도면 벡터 실측 (§4) |
